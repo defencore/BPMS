@@ -26,6 +26,7 @@ test('exported JSON imports back into the canonical model', () => {
     assert.equal(payload.version, 2);
     assert.deepEqual(imported.measurements[0], { index: 0, ...source });
     assert.equal(imported.deviceInfo.id, 'WBP-02A');
+    assert.equal(imported.deviceInfo.usernameSource, 'import');
     assert.deepEqual(imported.events[0], {
         ...event,
         anchorMeasurementKey: '',
@@ -36,6 +37,14 @@ test('exported JSON imports back into the canonical model', () => {
         dose: '',
         analysisWindowMinutes: 120
     });
+});
+
+test('device patient-name provenance survives JSON export and import', () => {
+    const payload = createExportPayload({
+        deviceInfo: { id: 'WBP-02A', username: 'Alex', usernameSource: 'device' },
+        measurements: [source]
+    });
+    assert.equal(parseExportPayload(payload).deviceInfo.usernameSource, 'device');
 });
 
 test('version 1 payloads migrate to the current model with an empty context-event collection', () => {

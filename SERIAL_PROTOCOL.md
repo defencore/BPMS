@@ -53,7 +53,11 @@ The count is an unsigned 16-bit big-endian value. BPMS therefore supports counts
 
 The normal response is exactly nine bytes. Its four-byte payload is a signed 32-bit little-endian integer. BPMS writes only the non-negative range `0..2147483647`.
 
-This field is not UTF-8 text. Commands `0x41` and `0x55` are not part of the verified V3.2.7 USB workflow and are not exposed as standard WBP-02A user-name operations.
+This field is not UTF-8 text and is separate from the patient name.
+
+### Patient name — `0x55`
+
+BPMS reads the device patient name with `0x55`. The response payload is UTF-8 text and is limited to 32 bytes. Command `0x41` writes the same UTF-8 payload. These commands were present in the original working BPMS integration and are also documented in the complete local WBP-02A protocol analysis, even though the captured V3.2.7 automatic-programming sequence did not call them.
 
 ### Measurement — `0x54`
 
@@ -122,6 +126,7 @@ Every SET command must return an exact echo of the complete request frame. BPMS 
 
 | Command | Payload | Purpose |
 | --- | --- | --- |
+| `0x41` | UTF-8, up to 32 bytes | Patient name |
 | `0x42` | Int32 little-endian | Session or patient ID |
 | `0x43` | UInt16 big-endian | Maximum cuff pressure; verified profile uses 280 mmHg |
 | `0x44` | `00/01` | First measurement within five minutes |

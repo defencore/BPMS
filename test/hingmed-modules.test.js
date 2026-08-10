@@ -144,6 +144,26 @@ test('record count, session ID, and record index use their full verified widths'
     assert.equal(result.index, 292);
 });
 
+test('patient name uses the original WBP-02A text commands', async () => {
+    const writes = [];
+    const encoder = new TextEncoder();
+    const client = new HingmedClient({
+        isSupported: () => true,
+        isOpen: () => true,
+        exchange: async packet => {
+            writes.push([...packet]);
+            if (packet[2] === 0x55) return buildCommandPacket(0x55, encoder.encode('Alex'));
+            return packet;
+        }
+    });
+
+    assert.equal(await client.getUserName(), 'Alex');
+    assert.equal(await client.setUserName('Alex'), 'Alex');
+    assert.deepEqual(writes.map(packet => packet[2]), [0x55, 0x41]);
+    assert.deepEqual(writes[1].slice(3, -2), [...encoder.encode('Alex')]);
+    await assert.rejects(() => client.setUserName('Ж'.repeat(17)), /32 UTF-8 bytes/u);
+});
+
 test('SET commands require an exact echo and retry three times before failing', async () => {
     let attempts = 0;
     const client = new HingmedClient({

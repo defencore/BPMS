@@ -5,6 +5,7 @@ export function createDeviceInfo() {
         id: null,
         numRecords: 0,
         username: null,
+        usernameSource: null,
         userId: null,
         serialNumber: null,
         macAddress: null

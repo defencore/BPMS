@@ -17,7 +17,7 @@ export function normalizeManualDeviceInfo(candidate = {}) {
     if (!/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/u.test(normalized.macAddress)) {
         throw new RangeError('MAC address must contain six hexadecimal pairs separated by colons');
     }
-    return normalized;
+    return { ...normalized, usernameSource: normalized.username ? 'manual' : null };
 }
 
 function hasDeviceIdentity(deviceInfo) {

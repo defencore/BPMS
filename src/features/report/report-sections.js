@@ -17,6 +17,7 @@ import {
 } from './report-formatters.js';
 
 export function writeReportSections(writer, model) {
+    writePatientAndDevice(writer, model);
     writeOverview(writer, model);
     writeAnalytics(writer, model);
     writeCompleteness(writer, model);
@@ -26,6 +27,27 @@ export function writeReportSections(writer, model) {
     writeEvents(writer, model.events);
     writeEventCorrelations(writer, model.eventCorrelations);
     writeMeasurements(writer, model.recorded);
+}
+
+function writePatientAndDevice(writer, model) {
+    const device = model.deviceInfo;
+    writer.section(t('report.section.patient-device'));
+    writer.table([
+        { key: 'field', label: t('report.column.field'), width: 55 },
+        { key: 'value', label: t('report.column.value'), width: 127 }
+    ], [
+        identityRow('report.patient-name', device.username),
+        identityRow('report.patient-source', t(`report.patient-source.${device.usernameSource ?? 'unknown'}`)),
+        identityRow('report.session-id', device.userId),
+        identityRow('report.device-model', device.id),
+        identityRow('report.device-serial', device.serialNumber),
+        identityRow('report.device-mac', device.macAddress),
+        identityRow('report.device-records', device.numRecords)
+    ]);
+}
+
+function identityRow(labelKey, value) {
+    return { field: t(labelKey), value: value ?? '-' };
 }
 
 function writeOverview(writer, model) {
@@ -57,7 +79,6 @@ function writeAnalytics(writer, model) {
             value: `${integer(model.sessions.filter(item => item.quality.sufficient).length)} / ${integer(model.sessions.length)}`
         }
     ], { columns: 4 });
-    writer.pageBreak();
     writer.section(t('report.section.sessions'));
     writer.table([
         { key: 'session', label: '#', width: 9 },

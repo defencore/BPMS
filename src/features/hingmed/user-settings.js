@@ -13,19 +13,25 @@ export function initUserSettings(client, onDeviceInfoChanged) {
 
 function savePatientName(onDeviceInfoChanged) {
     const username = normalizePatientName(value('patient-name-input'));
-    onDeviceInfoChanged({ username });
+    onDeviceInfoChanged({ username, usernameSource: username ? 'local' : null });
     showAlert(t('hingmed.patient-name-saved'), 'success');
 }
 
 async function save(client, onDeviceInfoChanged) {
     if (!client.isConnected()) return showAlert(t('hingmed.not-connected'), 'danger');
     if (blockIfDeviceBusy()) return;
+    const username = value('patient-name-input');
     const userId = value('user-id-input');
-    if (!userId) return showAlert(t('hingmed.user-value-required'), 'warning');
+    if (!username && !userId) return showAlert(t('hingmed.user-value-required'), 'warning');
     await runDeviceOperation('user-save', async () => {
         try {
-            const savedUserId = await client.setUserId(userId);
-            onDeviceInfoChanged({ userId: savedUserId });
+            const changes = {};
+            if (username) {
+                changes.username = await client.setUserName(username);
+                changes.usernameSource = 'device';
+            }
+            if (userId) changes.userId = await client.setUserId(userId);
+            onDeviceInfoChanged(changes);
             showAlert(t('hingmed.user-saved'), 'success');
         } catch (error) {
             showAlert(t('hingmed.operation-error', { message: error.message }), 'danger');
@@ -37,10 +43,29 @@ async function load(client, onDeviceInfoChanged) {
     if (!client.isConnected()) return showAlert(t('hingmed.not-connected'), 'danger');
     if (blockIfDeviceBusy()) return;
     await runDeviceOperation('user-load', async () => {
+        const [nameResult, idResult] = await Promise.allSettled([
+            client.getUserName(),
+            client.getUserId()
+        ]);
         try {
-            const userId = await client.getUserId();
-            if (userId) document.getElementById('user-id-input').value = userId;
-            onDeviceInfoChanged({ userId });
+            if (nameResult.status === 'rejected' && idResult.status === 'rejected') {
+                throw nameResult.reason;
+            }
+            const changes = {};
+            if (nameResult.status === 'fulfilled') {
+                changes.username = nameResult.value;
+                changes.usernameSource = nameResult.value ? 'device' : null;
+                document.getElementById('patient-name-input').value = nameResult.value ?? '';
+            }
+            if (idResult.status === 'fulfilled') {
+                changes.userId = idResult.value;
+                document.getElementById('user-id-input').value = idResult.value ?? '';
+            }
+            onDeviceInfoChanged(changes);
+            for (const result of [nameResult, idResult]) {
+                if (result.status === 'rejected') addToTerminal(result.reason.message, 'warning');
+            }
+            showAlert(t('hingmed.user-loaded'), 'success');
         } catch (error) {
             showAlert(t('hingmed.operation-error', { message: error.message }), 'danger');
         }

@@ -42,17 +42,29 @@ export async function createResearchReportDocument(model, PdfConstructor = windo
         title: t('report.title'),
         subtitle: t('report.subtitle'),
         notice: t('report.notice'),
-        patient: model.deviceInfo.username
-            ? { label: t('report.patient-name'), value: model.deviceInfo.username }
-            : null,
-        range: { label: t('report.range'), value: formatReportRange(model.range) },
-        generated: { label: t('report.generated'), value: formatDate(new Date(), { dateStyle: 'medium', timeStyle: 'short' }) },
+        metadata: reportMetadata(model),
         site: { label: t('report.website'), value: PUBLIC_APP_URL, url: PUBLIC_APP_URL }
     });
     writeReportSections(writer, model);
     writer.finalize(t('report.footer'));
     setDocumentProperties(pdf, model);
     return pdf;
+}
+
+function reportMetadata(model) {
+    return [
+        model.deviceInfo.username && { label: t('report.patient-name'), value: model.deviceInfo.username },
+        model.deviceInfo.username && { label: t('report.patient-source'), value: patientSource(model.deviceInfo.usernameSource) },
+        model.deviceInfo.userId && { label: t('report.session-id'), value: model.deviceInfo.userId },
+        model.deviceInfo.id && { label: t('report.device-model'), value: model.deviceInfo.id },
+        model.deviceInfo.serialNumber && { label: t('report.device-serial'), value: model.deviceInfo.serialNumber },
+        { label: t('report.range'), value: formatReportRange(model.range) },
+        { label: t('report.generated'), value: formatDate(new Date(), { dateStyle: 'medium', timeStyle: 'short' }) }
+    ].filter(Boolean);
+}
+
+function patientSource(source) {
+    return t(`report.patient-source.${source ?? 'unknown'}`);
 }
 
 function setDocumentProperties(pdf, model) {

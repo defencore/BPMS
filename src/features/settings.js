@@ -49,7 +49,7 @@ function bindEvents(container) {
 function saveSessionMetadata(event) {
     event.preventDefault();
     const username = normalizePatientName(event.currentTarget.querySelector('#session-patient-name')?.value ?? '');
-    updateDeviceInfo({ username });
+    updateDeviceInfo({ username, usernameSource: username ? 'local' : null });
     const manualPatientInput = event.currentTarget.closest('#application-settings')
         ?.querySelector('[data-manual-device-field="username"]');
     if (manualPatientInput) manualPatientInput.value = username ?? '';

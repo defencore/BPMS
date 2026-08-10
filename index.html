@@ -1361,7 +1361,7 @@
                                             <div class="mb-3">
                                                 <label for="patient-name-input" class="form-label">Patient name</label>
                                                 <input type="text" class="form-control" id="patient-name-input" maxlength="128" autocomplete="name" placeholder="Enter the patient name">
-                                                <small class="text-muted">Stored only in this browser and included in JSON/PDF exports</small>
+                                                <small class="text-muted">Read from or saved to Hingmed when connected; also stored in this browser and included in JSON/PDF exports</small>
                                             </div>
                                             <div class="mb-3">
                                                 <label for="user-id-input" class="form-label">Session / patient ID</label>
@@ -1395,15 +1395,15 @@
                                         <div class="col-md-6">
                                             <div class="alert alert-info">
                                                 <i class="fas fa-info-circle"></i> <strong>Session identification</strong>
-                                                <p class="mb-2 mt-2">The verified WBP-02A USB protocol stores one numeric session or patient ID with the measurements.</p>
+                                                <p class="mb-2 mt-2">WBP-02A exposes the patient name and numeric session ID through separate USB commands.</p>
                                                 <ul class="mb-0">
-                                                    <li>The value is encoded as a 32-bit little-endian integer</li>
-                                                    <li>BPMS reads it from the device after connection</li>
-                                                    <li>Applying a device profile writes the displayed value back</li>
+                                                    <li>The patient name is UTF-8 text with a 32-byte device limit</li>
+                                                    <li>The session ID is a 32-bit little-endian integer</li>
+                                                    <li>BPMS reads both values from the device and includes them in exports</li>
                                                 </ul>
                                                 <hr class="my-2">
                                                 <small class="text-muted">
-                                                    Verified commands: <code>0x42</code> writes the numeric ID; <code>0x56</code> reads it.
+                                                    Verified commands: <code>0x41/0x55</code> write/read the patient name; <code>0x42/0x56</code> write/read the numeric ID.
                                                 </small>
                                             </div>
                                         </div>

@@ -31,7 +31,10 @@ export class SerialSession {
     async open() {
         if (this.isOpen()) return;
         if (!this.isSupported()) throw new Error('Web Serial API is unavailable');
-        this.#port = await this.#navigator.serial.requestPort();
+        const permittedPorts = await this.#navigator.serial.getPorts?.() ?? [];
+        this.#port = permittedPorts.length === 1
+            ? permittedPorts[0]
+            : await this.#navigator.serial.requestPort();
         await this.#port.open(SERIAL_OPTIONS);
         await this.#port.setSignals?.({ dataTerminalReady: true, requestToSend: true });
         this.#writer = this.#port.writable.getWriter();

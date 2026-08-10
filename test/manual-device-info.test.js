@@ -23,6 +23,7 @@ test('manual device information is normalized and validates its export identity'
     }), {
         id: 'BPMS-MANUAL',
         username: 'Alex',
+        usernameSource: 'manual',
         userId: 'A-1',
         serialNumber: 'CUSTOM-1',
         macAddress: '02:00:00:00:00:01'

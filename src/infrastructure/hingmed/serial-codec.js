@@ -33,7 +33,7 @@ export function decodeRecordCount(packet) {
 }
 
 export function decodeSessionId(packet) {
-    const bytes = assertFrame(packet, COMMANDS.GET_USER_ID, SESSION_ID_LENGTH);
+    const bytes = assertFrame(packet, COMMANDS.GET_SESSION_ID, SESSION_ID_LENGTH);
     const view = new DataView(bytes.buffer, bytes.byteOffset + 3, 4);
     return view.getInt32(0, true);
 }
@@ -46,6 +46,23 @@ export function encodeSessionId(value) {
     const payload = new Uint8Array(4);
     new DataView(payload.buffer).setInt32(0, sessionId, true);
     return payload;
+}
+
+export function encodeDeviceText(value, maximumBytes, field = 'Text') {
+    const text = String(value ?? '').trim();
+    if (!text) throw new TypeError(`${field} is required`);
+    const bytes = new TextEncoder().encode(text);
+    if (bytes.length > maximumBytes) throw new RangeError(`${field} must not exceed ${maximumBytes} UTF-8 bytes`);
+    return Object.freeze({ text, bytes });
+}
+
+export function decodeDeviceText(packet, expectedCommand, maximumBytes) {
+    const bytes = toBytes(packet);
+    if (!isValidSerialFrame(bytes)) throw new TypeError('Invalid serial frame');
+    if (bytes[2] !== expectedCommand) throw new TypeError(`Unexpected serial command 0x${bytes[2].toString(16).toUpperCase()}`);
+    const payload = bytes.slice(3, bytes.length - 2);
+    if (payload.length > maximumBytes) throw new RangeError(`Text response exceeds ${maximumBytes} bytes`);
+    return new TextDecoder().decode(payload).replaceAll('\0', '').trim() || null;
 }
 
 export function decodeMeasurementPacket(packet, index = 0) {

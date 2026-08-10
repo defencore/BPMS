@@ -87,7 +87,6 @@ async function clearHingmedDeviceMemory() {
 
 export async function disconnectHingmed() {
     await client.disconnect();
-    persistDeviceInfo({ username: state.deviceInfo.username }, true);
     setHingmedControlsEnabled(false);
     refreshDashboard();
     addToTerminal(t('hingmed.disconnected'), 'system');
@@ -122,17 +121,23 @@ export async function fetchHingmedMeasurements() {
 }
 
 async function hydrateDeviceInfo() {
-    const userId = await optional(() => client.getUserId());
+    const username = await optional(() => client.getUserName({ timeout: 1200, attempts: 1 }));
+    const userId = await optional(() => client.getUserId({ timeout: 1200, attempts: 1 }));
+    if (username !== null) {
+        const input = document.getElementById('patient-name-input');
+        if (input) input.value = username;
+    }
     if (userId !== null) {
         const input = document.getElementById('user-id-input');
         if (input) input.value = userId;
     }
-    persistDeviceInfo({
-        userId,
-        numRecords: await optional(() => client.getRecordCount()) ?? 0,
-        serialNumber: await optional(() => client.getDeviceCode()),
-        macAddress: await optional(() => client.getMacAddress())
-    });
+    const changes = {
+        numRecords: await optional(() => client.getRecordCount({ timeout: 1200, attempts: 1 })) ?? 0,
+        serialNumber: await optional(() => client.getDeviceCode({ timeout: 1200, attempts: 1 }))
+    };
+    if (username !== null) Object.assign(changes, { username, usernameSource: 'device' });
+    if (userId !== null) changes.userId = userId;
+    persistDeviceInfo(changes);
 }
 
 function renderClockSyncStatus() {
@@ -150,7 +155,7 @@ function formatClock(value) {
 
 function updateDeviceInfo(changes) {
     persistDeviceInfo(Object.fromEntries(Object.entries(changes)
-        .filter(([key, value]) => key === 'username' || value != null)));
+        .filter(([key, value]) => ['username', 'usernameSource'].includes(key) || value != null)));
     refreshDashboard();
 }
 

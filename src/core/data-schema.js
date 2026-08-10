@@ -5,6 +5,7 @@ export const DATA_SCHEMA = 'bpms';
 export const DATA_VERSION = 2;
 const ERRORS = new Set(['none', 'interrupted', 'movement', 'cuff-pressure', 'unknown']);
 const MEASUREMENT_EVENTS = new Set(['automatic', 'manual', 'retest', 'unknown']);
+const USERNAME_SOURCES = new Set(['device', 'manual', 'local', 'import', 'remote']);
 
 export function createExportPayload({ deviceInfo = {}, measurements = [], events = [], sources = [] } = {}) {
     return {
@@ -25,7 +26,7 @@ export function parseExportPayload(payload) {
     }
     if (!Array.isArray(payload.measurements)) throw new TypeError('Measurements must be an array');
     return {
-        deviceInfo: sanitizeDevice(payload.device),
+        deviceInfo: sanitizeDevice(payload.device, 'import'),
         measurements: payload.measurements.map(normalizeMeasurement),
         events: payload.version === 1 ? [] : normalizeEvents(payload.events),
         sources: Array.isArray(payload.sources) ? payload.sources.filter(value => typeof value === 'string') : []
@@ -94,11 +95,13 @@ function integerInRange(value, min, max, field, index) {
     return number;
 }
 
-function sanitizeDevice(device = {}) {
+function sanitizeDevice(device = {}, defaultUsernameSource = null) {
+    const username = nullableString(device?.username);
     return {
         id: nullableString(device?.id),
         numRecords: Number.isInteger(Number(device?.numRecords)) ? Number(device.numRecords) : 0,
-        username: nullableString(device?.username),
+        username,
+        usernameSource: enumOr(device?.usernameSource, USERNAME_SOURCES, username ? defaultUsernameSource : null),
         userId: nullableString(device?.userId),
         serialNumber: nullableString(device?.serialNumber),
         macAddress: nullableString(device?.macAddress)

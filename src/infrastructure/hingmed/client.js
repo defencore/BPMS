@@ -9,16 +9,16 @@ import { SerialSession } from './serial-session.js';
 import {
     decodeMeasurementPacket,
     decodeRecordCount,
+    decodeDeviceText,
     decodeSessionId,
+    encodeDeviceText,
     encodeSessionId,
     HANDSHAKE_REQUEST,
     isHandshakeResponse
 } from './serial-codec.js';
 import { assertCompleteUsbProfile } from './usb-profile.js';
-
 const ERROR_RESPONSE = 0xD3;
 const DEFAULT_ATTEMPTS = 3;
-
 export class HingmedClient {
     #session;
 
@@ -63,19 +63,29 @@ export class HingmedClient {
         throw new Error(`WBP-02A handshake failed after ${DEFAULT_ATTEMPTS} attempts: ${lastError?.message ?? 'no response'}`);
     }
 
-    async getUserId() {
-        const response = await this.command(COMMANDS.GET_USER_ID, [], { timeout: 2000, expectedLength: 9 });
+    async getUserName({ timeout = 1800, attempts = 2 } = {}) {
+        return this.#readText(COMMANDS.GET_USER_NAME, { timeout, attempts, maximumBytes: 32 });
+    }
+
+    async setUserName(value) {
+        const { text, bytes } = encodeDeviceText(value, 32, 'Patient name');
+        await this.command(COMMANDS.SET_USER_NAME, bytes, { timeout: 2200, attempts: 2 });
+        return text;
+    }
+
+    async getUserId({ timeout = 2000, attempts = DEFAULT_ATTEMPTS } = {}) {
+        const response = await this.command(COMMANDS.GET_SESSION_ID, [], { timeout, attempts, expectedLength: 9 });
         return String(decodeSessionId(response));
     }
 
     async setUserId(value) {
         const sessionId = String(Number(value));
-        await this.writeCommandConfirmed(COMMANDS.SET_USER_ID, encodeSessionId(value));
+        await this.writeCommandConfirmed(COMMANDS.SET_SESSION_ID, encodeSessionId(value));
         return sessionId;
     }
 
-    async getRecordCount() {
-        const response = await this.command(COMMANDS.GET_STATUS, [], { expectedLength: 7 });
+    async getRecordCount({ timeout = 2000, attempts = DEFAULT_ATTEMPTS } = {}) {
+        const response = await this.command(COMMANDS.GET_STATUS, [], { timeout, attempts, expectedLength: 7 });
         return decodeRecordCount(response);
     }
 
@@ -90,12 +100,12 @@ export class HingmedClient {
         return decodeMeasurementPacket(response, index);
     }
 
-    async getDeviceCode() {
-        return this.#readText(COMMANDS.GET_DEVICE_CODE, 5000);
+    async getDeviceCode({ timeout = 5000, attempts = DEFAULT_ATTEMPTS } = {}) {
+        return this.#readText(COMMANDS.GET_DEVICE_CODE, { timeout, attempts, maximumBytes: 128 });
     }
 
-    async getMacAddress() {
-        const response = await this.command(COMMANDS.WIFI_GET_MAC, [], { timeout: 5000 });
+    async getMacAddress({ timeout = 5000, attempts = DEFAULT_ATTEMPTS } = {}) {
+        const response = await this.command(COMMANDS.WIFI_GET_MAC, [], { timeout, attempts });
         if (response.length < 11) throw new Error('Invalid MAC-address response');
         return [...response.slice(3, 9)].map(byte => byte.toString(16).padStart(2, '0').toUpperCase()).join(':');
     }
@@ -210,9 +220,9 @@ export class HingmedClient {
         return this.#session.exchange(packet, { expectedCommand: packet[2], timeout: 3000 });
     }
 
-    async #readText(command, timeout) {
-        const response = await this.command(command, [], { timeout });
-        return new TextDecoder().decode(response.slice(3, response[1] - 2)).replaceAll('\0', '').trim() || null;
+    async #readText(command, { timeout, attempts, maximumBytes }) {
+        const response = await this.command(command, [], { timeout, attempts });
+        return decodeDeviceText(response, command, maximumBytes);
     }
 
     async #completeProgramming({ now, delayMs, settleMs }) {

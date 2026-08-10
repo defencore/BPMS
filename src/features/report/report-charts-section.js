@@ -2,8 +2,10 @@ import { formatDate, t } from '../../i18n/i18n.js';
 import { drawDailyProfileChart, drawEscDistribution, drawPressureCalendar } from './pdf-analytics-charts.js';
 import { drawTimelineChart } from './pdf-charts.js';
 import { integer, percent, shortChartDate } from './report-formatters.js';
+import { withPressureBoundaries } from './report-timeline-data.js';
 
 export function writeReportCharts(writer, model) {
+    const pressureTimeline = withPressureBoundaries(model.chartMeasurements, model.settings);
     drawPressureCalendar(writer, {
         title: t('report.chart.calendar'),
         explanation: t('report.calendar.explanation'),
@@ -16,14 +18,20 @@ export function writeReportCharts(writer, model) {
     });
     drawTimelineChart(writer, {
         title: t('report.chart.dynamics'),
-        measurements: model.chartMeasurements,
+        explanation: t('report.dynamics.explanation'),
+        measurements: pressureTimeline,
         series: [
             { key: 'systolic', label: t('report.series.systolic'), color: 'systolic' },
-            { key: 'diastolic', label: t('report.series.diastolic'), color: 'diastolic' }
+            { key: 'diastolic', label: t('report.series.diastolic'), color: 'diastolic' },
+            { key: 'systolicBoundary', color: 'systolicBoundary', dashed: true, points: false, legend: false },
+            { key: 'diastolicBoundary', color: 'diastolicBoundary', dashed: true, points: false, legend: false }
         ],
         unit: t('report.unit.pressure'),
         formatDate: shortChartDate,
-        noData: t('report.no-chart-data')
+        noData: t('report.no-chart-data'),
+        sleepWindow: model.settings.monitoring,
+        events: model.events,
+        eventLabel: t('report.series.context-event')
     });
     drawDailyProfileChart(writer, {
         title: t('report.chart.daily-profile'),
@@ -50,6 +58,7 @@ export function writeReportCharts(writer, model) {
     });
     drawTimelineChart(writer, {
         title: t('report.chart.pulse'),
+        explanation: t('report.pulse-chart.explanation'),
         measurements: model.chartMeasurements,
         series: [{ key: 'pulse', label: t('report.series.pulse'), color: 'pulse' }],
         unit: t('report.unit.pulse'),
