@@ -20,7 +20,7 @@ export function updateMeasurementHistory() {
     tbody.dataset.i18nSkip = '';
     if (!state.measurements.length) {
         tbody.innerHTML = `
-            <tr>
+            <tr class="history-empty-row">
                 <td colspan="10" class="text-center text-muted py-5">
                     <i class="fas fa-database fa-3x mb-3 d-block"></i>
                     ${t('No data to display')}
@@ -52,17 +52,21 @@ function renderMeasurementRow(measurement, index) {
 
     return `
         <tr class="measurement-row" data-measurement-index="${index}">
-            <td>${index + 1}</td>
-            <td><i class="far fa-clock me-1"></i>${escapeHtml(measurement.datetime)}${edited}</td>
-            <td><span class="measurement-badge ${pressureClass}">${measurement.systolic}</span></td>
-            <td><span class="measurement-badge ${pressureClass}">${measurement.diastolic}</span></td>
-            <td><span class="measurement-badge ${pulse.class}">${measurement.pulse}</span></td>
-            <td class="${positionClass}">${t(bodyPositionLabelKey(measurement.bodyPosition))}</td>
-            <td><span class="bp-classification ${pressure.cssClass}">${t(pressure.textKey)}</span></td>
-            <td>${status}</td>
-            <td>${comment}</td>
-            <td class="text-end">${actions}</td>
+            ${historyCell(index + 1, '#')}
+            ${historyCell(`<i class="far fa-clock me-1"></i>${escapeHtml(measurement.datetime)}${edited}`, 'Date/Time')}
+            ${historyCell(`<span class="measurement-badge ${pressureClass}">${measurement.systolic}</span>`, 'Systolic')}
+            ${historyCell(`<span class="measurement-badge ${pressureClass}">${measurement.diastolic}</span>`, 'Diastolic')}
+            ${historyCell(`<span class="measurement-badge ${pulse.class}">${measurement.pulse}</span>`, 'Pulse')}
+            ${historyCell(t(bodyPositionLabelKey(measurement.bodyPosition)), 'Position', positionClass)}
+            ${historyCell(`<span class="bp-classification ${pressure.cssClass}">${t(pressure.textKey)}</span>`, 'Classification')}
+            ${historyCell(status, 'Status')}
+            ${historyCell(comment, 'Comment')}
+            ${historyCell(actions, 'Actions', 'text-end')}
         </tr>`;
+}
+
+function historyCell(content, label, className = '') {
+    return `<td class="${className}" data-label="${escapeHtml(t(label))}">${content}</td>`;
 }
 
 function renderCommentAndContext(measurement) {

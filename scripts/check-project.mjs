@@ -71,7 +71,8 @@ function checkDomContracts(html, sources, errors) {
     const renderedMarkup = [html, ...sources.values()].join('\n');
     const declaredIds = new Set([
         ...[...renderedMarkup.matchAll(/\bid=["']([^"']+)["']/g)].map(match => match[1]),
-        ...[...renderedMarkup.matchAll(/inputField\(["']([^"']+)["']/g)].map(match => match[1])
+        ...[...renderedMarkup.matchAll(/inputField\(["']([^"']+)["']/g)].map(match => match[1]),
+        ...[...renderedMarkup.matchAll(/inputField\(\{\s*id:\s*["']([^"']+)["']/g)].map(match => match[1])
     ]);
     for (const [file, source] of sources) {
         const references = [

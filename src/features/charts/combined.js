@@ -3,6 +3,14 @@ import { state } from '../../core/state.js';
 import { t } from '../../i18n/i18n.js';
 import { calculateCombinedChartBounds, formatCombinedXAxisLabel, selectCombinedChartMeasurements } from './combined-data.js';
 import { applyClinicalThresholds } from './thresholds.js';
+import {
+    compactDatasetStyle,
+    isCompactChartViewport,
+    responsiveAxisTitle,
+    responsiveLegend,
+    responsiveTicks,
+    responsiveTooltip
+} from './responsive-options.js';
 
 // Chart initialization and update functions
 
@@ -17,6 +25,8 @@ export function initCombinedChart() {
     const settings = getSettings();
     const zones = settings.esc2024.riskZones;
     const patterns = settings.patterns;
+    const compact = isCompactChartViewport();
+    const datasetStyle = compactDatasetStyle();
 
     // Destroy existing chart if it exists
     if (state.charts.combined) {
@@ -36,7 +46,7 @@ export function initCombinedChart() {
                     data: [],
                     tension: 0.4,
                     fill: false,
-                    borderWidth: 3,
+                    ...datasetStyle,
                     yAxisID: 'y'
                 },
                 {
@@ -46,7 +56,7 @@ export function initCombinedChart() {
                     data: [],
                     tension: 0.4,
                     fill: false,
-                    borderWidth: 3,
+                    ...datasetStyle,
                     yAxisID: 'y'
                 },
                 {
@@ -56,7 +66,7 @@ export function initCombinedChart() {
                     data: [],
                     tension: 0.4,
                     fill: false,
-                    borderWidth: 3,
+                    ...datasetStyle,
                     yAxisID: 'y1'
                 }
             ]
@@ -64,6 +74,8 @@ export function initCombinedChart() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: { duration: compact ? 0 : 400 },
+            layout: { padding: compact ? 0 : 4 },
             interaction: {
                 mode: 'index',
                 intersect: false,
@@ -73,12 +85,10 @@ export function initCombinedChart() {
                     grid: {
                         display: false
                     },
-                    ticks: {
-                        callback: function(value, index) {
+                    ticks: responsiveTicks(function(value) {
                             const label = this.getLabelForValue(value);
                             return formatCombinedXAxisLabel(label);
-                        }
-                    }
+                        }, { maxTicks: 5 })
                 },
                 y: {
                     type: 'linear',
@@ -90,16 +100,8 @@ export function initCombinedChart() {
                     grid: {
                         color: 'rgba(239, 68, 68, 0.1)'
                     },
-                    ticks: {
-                        callback: function(value) {
-                            return `${value} ${t('mmHg')}`;
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: t('Blood pressure (mmHg)'),
-                        color: '#ef4444'
-                    }
+                    ticks: responsiveTicks(value => compact ? value : `${value} ${t('mmHg')}`, { maxTicks: 5 }),
+                    title: responsiveAxisTitle(t('Blood pressure (mmHg)'), '#ef4444')
                 },
                 y1: {
                     type: 'linear',
@@ -112,35 +114,13 @@ export function initCombinedChart() {
                         drawOnChartArea: false,
                         color: 'rgba(16, 185, 129, 0.1)'
                     },
-                    ticks: {
-                        callback: function(value) {
-                            return `${value} ${t('bpm')}`;
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: t('Pulse (bpm)'),
-                        color: '#10b981'
-                    }
+                    ticks: responsiveTicks(value => compact ? value : `${value} ${t('bpm')}`, { maxTicks: 5 }),
+                    title: responsiveAxisTitle(t('Pulse (bpm)'), '#10b981')
                 }
             },
             plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    titleColor: '#1e293b',
-                    bodyColor: '#1e293b',
-                    borderColor: '#e2e8f0',
-                    borderWidth: 1,
-                    padding: 12,
-                    displayColors: true,
-                    callbacks: {
+                legend: responsiveLegend(),
+                tooltip: responsiveTooltip({
                         label: function(context) {
                             let label = context.dataset.label || '';
                             if (label) {
@@ -155,8 +135,7 @@ export function initCombinedChart() {
                             }
                             return label;
                         }
-                    }
-                },
+                    }),
                 zoom: {
                     pan: {
                         enabled: true,
@@ -192,7 +171,8 @@ export function initCombinedChart() {
                             borderWidth: 1,
                             borderDash: [10, 5],
                             label: {
-                                enabled: true,
+                                display: !compact,
+                                enabled: !compact,
                                 content: t('chart.normal-systolic', { value: zones.optimalSystolic }),
                                 position: 'start',
                                 backgroundColor: 'rgba(245, 158, 11, 0.8)',
@@ -210,7 +190,8 @@ export function initCombinedChart() {
                             borderWidth: 1,
                             borderDash: [10, 5],
                             label: {
-                                enabled: true,
+                                display: !compact,
+                                enabled: !compact,
                                 content: t('chart.normal-diastolic', { value: zones.optimalDiastolic }),
                                 position: 'start',
                                 backgroundColor: 'rgba(59, 130, 246, 0.8)',
@@ -228,7 +209,8 @@ export function initCombinedChart() {
                             borderWidth: 1,
                             borderDash: [10, 5],
                             label: {
-                                enabled: true,
+                                display: !compact,
+                                enabled: !compact,
                                 content: t('chart.normal-pulse', { value: patterns.tachycardia }),
                                 position: 'end',
                                 backgroundColor: 'rgba(16, 185, 129, 0.8)',
@@ -246,7 +228,8 @@ export function initCombinedChart() {
                             borderWidth: 1,
                             borderDash: [10, 5],
                             label: {
-                                enabled: true,
+                                display: !compact,
+                                enabled: !compact,
                                 content: t('chart.normal-pulse', { value: patterns.bradycardia }),
                                 position: 'end',
                                 backgroundColor: 'rgba(16, 185, 129, 0.8)',

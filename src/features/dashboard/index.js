@@ -9,7 +9,7 @@ import {
 } from '../charts/combined.js';
 import { initHistograms, updateHistograms } from '../charts/histograms.js';
 import { destroyCharts } from '../charts/lifecycle.js';
-import { updateClinicalAlerts } from '../clinical-alerts.js';
+import { initClinicalAlerts, updateClinicalAlerts } from '../clinical-alerts.js';
 import { renderDeviceInfo } from '../device-info-view.js';
 import { updateEventCorrelationPanel } from '../event-correlation.js';
 import { updateMeasurementHistory } from '../measurement-history.js';
@@ -18,6 +18,7 @@ import { renderClassificationSummary } from './classification-summary.js';
 import { renderMeasurementStatistics } from './statistics.js';
 
 export function initDashboard() {
+    initClinicalAlerts();
     document.getElementById('btn-clear')?.addEventListener('click', clearDashboardData);
     document.getElementById('btn-export')?.addEventListener('click', exportResearchReport);
 }

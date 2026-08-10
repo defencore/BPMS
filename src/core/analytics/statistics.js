@@ -1,3 +1,9 @@
+import {
+    meanArterialPressure,
+    pulsePressure,
+    scaledRatePressureProduct
+} from './measurement-metrics.js';
+
 export function summarizeSeries(values) {
     const clean = values.filter(Number.isFinite);
     if (!clean.length) return null;
@@ -31,9 +37,10 @@ export function summarizeMeasurements(measurements) {
         count: ordered.length,
         systolic: withArv(ordered.map(item => item.systolic)),
         diastolic: withArv(ordered.map(item => item.diastolic)),
+        meanArterialPressure: withArv(ordered.map(meanArterialPressure)),
         pulse: withArv(ordered.map(item => item.pulse)),
-        pulsePressure: withArv(ordered.map(item => item.systolic - item.diastolic)),
-        scaledRpp: withArv(ordered.map(item => item.systolic * item.pulse / 100))
+        pulsePressure: withArv(ordered.map(pulsePressure)),
+        scaledRpp: withArv(ordered.map(scaledRatePressureProduct))
     });
 }
 

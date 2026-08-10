@@ -1,4 +1,6 @@
 import { updateSettings, getSettings } from '../core/settings-store.js';
+import { manualDeviceDefaultsPatch } from '../core/manual-device-info.js';
+import { state, updateDeviceInfo } from '../core/state.js';
 import { t } from '../i18n/i18n.js';
 import { showAlert } from '../ui/alerts.js';
 import { addToTerminal } from '../ui/terminal.js';
@@ -16,6 +18,7 @@ let refreshDashboard = () => {};
 export function initConnectorController(onDataChanged) {
     refreshDashboard = onDataChanged;
     activeConnector = getConnector(getSettings().connector.active);
+    prepareActiveConnector();
     document.getElementById('btn-connect')?.addEventListener('click', connectActive);
     document.getElementById('btn-disconnect')?.addEventListener('click', disconnectActive);
     document.getElementById('btn-fetch-data')?.addEventListener('click', fetchActive);
@@ -30,8 +33,16 @@ export async function selectConnector(id) {
     if (connected) await disconnectActive();
     activeConnector = getConnector(id);
     updateSettings({ connector: { active: id } });
+    prepareActiveConnector();
     renderConnectorState();
     window.dispatchEvent(new CustomEvent('bpms:connectorchange', { detail: { id } }));
+}
+
+function prepareActiveConnector() {
+    if (activeConnector.id !== 'manual') return;
+    const defaults = manualDeviceDefaultsPatch(state.deviceInfo);
+    if (defaults) updateDeviceInfo(defaults);
+    refreshDashboard();
 }
 
 export function getActiveConnector() {
@@ -122,6 +133,8 @@ function renderConnectorState() {
     const isManual = connector.id === 'manual';
     const isBusy = isConnectorOperationBusy();
 
+    if (document.body) document.body.dataset.connector = connector.id;
+
     if (connectButton) connectButton.disabled = isBusy || connected || !connector.isSupported();
     if (disconnectButton) disconnectButton.disabled = isBusy || !connected;
     if (fetchButton) fetchButton.disabled = isBusy || !connected || !connector.capabilities.fetch;
@@ -146,8 +159,9 @@ function renderConnectorState() {
         element.toggleAttribute('inert', !isAvailable);
     });
     if (status) {
-        status.className = `status-badge ${connected ? 'status-connected' : 'status-disconnected'}`;
-        status.innerHTML = `<i class="fas fa-circle"></i> ${t(connected ? 'Connected' : 'Disconnected')}`;
+        const ready = connected || isManual;
+        status.className = `status-badge ${ready ? 'status-connected' : 'status-disconnected'}`;
+        status.innerHTML = `<i class="fas fa-circle"></i> ${t(isManual ? 'manual-entry.ready' : connected ? 'Connected' : 'Disconnected')}`;
     }
 }
 

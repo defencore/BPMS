@@ -7,7 +7,7 @@ export const SETTINGS_VERSION = 2;
 export function createDefaultSettings() {
     return {
         version: SETTINGS_VERSION,
-        connector: { active: 'hingmed' },
+        connector: { active: 'manual' },
         remote: {
             protocol: 'https',
             host: '',

@@ -2,6 +2,7 @@ import { state } from '../core/state.js';
 
 export function renderDeviceInfo() {
     setText('device-username-inline', state.deviceInfo.username);
+    setInputValue('session-patient-name', state.deviceInfo.username);
     setText('device-userid-inline', state.deviceInfo.userId);
     setText('device-records-inline', state.deviceInfo.numRecords || null);
     setText('loaded-records-inline', state.measurements.length);
@@ -10,6 +11,11 @@ export function renderDeviceInfo() {
 
     const badge = document.querySelector('#btn-fetch-data .badge');
     if (badge) badge.textContent = String(state.deviceInfo.numRecords || '');
+}
+
+function setInputValue(id, value) {
+    const element = document.getElementById(id);
+    if (element && document.activeElement !== element) element.value = value ?? '';
 }
 
 export function setHingmedControlsEnabled(enabled) {

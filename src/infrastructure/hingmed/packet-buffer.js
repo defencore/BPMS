@@ -1,4 +1,5 @@
 import { HEADER_SERIAL } from '../../core/constants.js';
+import { isValidSerialFrame } from './serial-codec.js';
 
 const MIN_PACKET_LENGTH = 5;
 
@@ -26,8 +27,13 @@ export class PacketBuffer {
             }
             if (this.#bytes.length < packetLength) break;
 
-            packets.push(this.#bytes.slice(0, packetLength));
-            this.#bytes = this.#bytes.slice(packetLength);
+            const candidate = this.#bytes.slice(0, packetLength);
+            if (isValidSerialFrame(candidate)) {
+                packets.push(candidate);
+                this.#bytes = this.#bytes.slice(packetLength);
+                continue;
+            }
+            this.#bytes = this.#bytes.slice(1);
         }
 
         return packets;

@@ -3,7 +3,6 @@ export const BODY_POSITION_VALUES = Object.freeze([
     'sitting',
     'standing',
     'sitting-standing',
-    'light-motion',
     'physical-activity',
     'unknown'
 ]);
@@ -14,7 +13,6 @@ export const MANUAL_BODY_POSITIONS = Object.freeze([
     'lying',
     'sitting',
     'standing',
-    'light-motion',
     'physical-activity',
     'unknown'
 ]);

@@ -33,6 +33,7 @@ export class SerialSession {
         if (!this.isSupported()) throw new Error('Web Serial API is unavailable');
         this.#port = await this.#navigator.serial.requestPort();
         await this.#port.open(SERIAL_OPTIONS);
+        await this.#port.setSignals?.({ dataTerminalReady: true, requestToSend: true });
         this.#writer = this.#port.writable.getWriter();
         this.#reader = this.#port.readable.getReader();
         this.#readTask = this.#readLoop();
@@ -55,7 +56,10 @@ export class SerialSession {
             reader.releaseLock();
         }
         if (writer) writer.releaseLock();
-        if (port) await port.close();
+        if (port) {
+            await port.setSignals?.({ dataTerminalReady: false, requestToSend: false }).catch(() => {});
+            await port.close();
+        }
         this.#readTask = null;
     }
 
@@ -66,23 +70,28 @@ export class SerialSession {
         await this.#writer.write(bytes);
     }
 
-    async exchange(data, { expectedCommand = data?.[2], timeout = 2000 } = {}) {
+    async exchange(data, { expectedCommand = data?.[2], predicate = null, timeout = 2000 } = {}) {
         await this.write(data);
-        return this.waitForPacket({ expectedCommand, timeout });
+        return this.waitForPacket({ expectedCommand, predicate, timeout });
     }
 
-    waitForPacket({ expectedCommand = null, timeout = 2000 } = {}) {
-        const queuedIndex = this.#packets.findIndex(packet => matches(packet, expectedCommand));
+    waitForPacket({ expectedCommand = null, predicate = null, timeout = 2000 } = {}) {
+        const queuedIndex = this.#packets.findIndex(packet => matches(packet, expectedCommand, predicate));
         if (queuedIndex >= 0) return Promise.resolve(this.#packets.splice(queuedIndex, 1)[0]);
 
         return new Promise((resolve, reject) => {
-            const waiter = { expectedCommand, resolve, reject, timer: null };
+            const waiter = { expectedCommand, predicate, resolve, reject, timer: null };
             waiter.timer = setTimeout(() => {
                 this.#waiters.delete(waiter);
                 reject(new Error(`Serial response timed out after ${timeout} ms`));
             }, timeout);
             this.#waiters.add(waiter);
         });
+    }
+
+    discardBufferedPackets() {
+        this.#packets = [];
+        this.#buffer.clear();
     }
 
     async #readLoop() {
@@ -99,7 +108,7 @@ export class SerialSession {
 
     #dispatch(packet) {
         this.#logger(formatHex(packet), 'received');
-        const waiter = [...this.#waiters].find(candidate => matches(packet, candidate.expectedCommand));
+        const waiter = [...this.#waiters].find(candidate => matches(packet, candidate.expectedCommand, candidate.predicate));
         if (waiter) {
             clearTimeout(waiter.timer);
             this.#waiters.delete(waiter);
@@ -119,6 +128,7 @@ export class SerialSession {
     }
 }
 
-function matches(packet, expectedCommand) {
-    return expectedCommand === null || expectedCommand === undefined || packet[2] === expectedCommand;
+function matches(packet, expectedCommand, predicate) {
+    const commandMatches = expectedCommand === null || expectedCommand === undefined || packet[2] === expectedCommand;
+    return commandMatches && (!predicate || predicate(packet));
 }

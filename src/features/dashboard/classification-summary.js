@@ -33,7 +33,7 @@ function renderPeriod(elementId, measurements, emptyKey) {
         .map(group => row(group, measurements.length))
         .join('');
 
-    element.innerHTML = `<div class="table-responsive"><table class="table table-sm"><thead><tr>
+    element.innerHTML = `<div class="table-responsive"><table class="table table-sm classification-summary-table"><thead><tr>
         <th>${escapeHtml(t('esc-summary.count'))}</th>
         <th>${escapeHtml(t('esc-summary.classification'))}</th>
         <th>${escapeHtml(t('esc-summary.reference-context'))}</th>
@@ -42,7 +42,7 @@ function renderPeriod(elementId, measurements, emptyKey) {
 
 function row({ count, classification }, total) {
     const percentage = ((count / total) * 100).toFixed(1);
-    return `<tr><td><span class="fw-bold">${count} (${percentage}%)</span></td>
-        <td><span class="bp-classification ${classification.cssClass}">${escapeHtml(t(classification.textKey))}</span></td>
-        <td><small class="text-muted"><i class="fas fa-lightbulb me-1" style="color:${classification.color}"></i>${escapeHtml(t(classification.noteKey))}</small></td></tr>`;
+    return `<tr><td data-label="${escapeHtml(t('esc-summary.count'))}"><span class="fw-bold">${count} (${percentage}%)</span></td>
+        <td data-label="${escapeHtml(t('esc-summary.classification'))}"><span class="bp-classification ${classification.cssClass}">${escapeHtml(t(classification.textKey))}</span></td>
+        <td data-label="${escapeHtml(t('esc-summary.reference-context'))}"><small class="text-muted"><i class="fas fa-lightbulb me-1" style="color:${classification.color}"></i>${escapeHtml(t(classification.noteKey))}</small></td></tr>`;
 }

@@ -385,7 +385,9 @@ body {
     }
 
     .chart-container {
-        height: 320px;
+        aspect-ratio: 4 / 3;
+        height: auto !important;
+        min-height: 0 !important;
         padding: 0.5rem;
     }
 

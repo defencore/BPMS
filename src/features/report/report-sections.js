@@ -2,6 +2,7 @@ import { ESC_GUIDELINE_URL } from '../../core/clinical-sources.js';
 import { formatEventOffset } from '../../core/measurement-context.js';
 import { formatDate, t } from '../../i18n/i18n.js';
 import { writeReportCharts } from './report-charts-section.js';
+import { writeClinicalDetails } from './report-clinical-details.js';
 import {
     decimal,
     formatMeasurementDate,
@@ -20,6 +21,7 @@ export function writeReportSections(writer, model) {
     writeAnalytics(writer, model);
     writeCompleteness(writer, model);
     writeReportCharts(writer, model);
+    writeClinicalDetails(writer, model);
     writeDailySummary(writer, model);
     writeEvents(writer, model.events);
     writeEventCorrelations(writer, model.eventCorrelations);
@@ -45,6 +47,7 @@ function writeAnalytics(writer, model) {
     writer.paragraph(t('report.analytics.explanation'), { muted: true });
     writer.statCards([
         { label: t('report.analytics.mean-pp'), value: `${decimal(model.summary.pulsePressure?.mean)} ${t('report.unit.pressure')}` },
+        { label: t('report.analytics.mean-map'), value: `${decimal(model.summary.meanArterialPressure?.mean)} ${t('report.unit.pressure')}` },
         { label: t('report.analytics.sbp-sd'), value: `${decimal(model.summary.systolic?.sd)} ${t('report.unit.pressure')}` },
         { label: t('report.analytics.sbp-cv'), value: `${decimal(model.summary.systolic?.cv)}%` },
         { label: t('report.analytics.sbp-arv'), value: `${decimal(model.summary.systolic?.arv)} ${t('report.unit.pressure')}` },
@@ -53,7 +56,7 @@ function writeAnalytics(writer, model) {
             label: t('report.analytics.quality-sessions'),
             value: `${integer(model.sessions.filter(item => item.quality.sufficient).length)} / ${integer(model.sessions.length)}`
         }
-    ], { columns: 3 });
+    ], { columns: 4 });
     writer.pageBreak();
     writer.section(t('report.section.sessions'));
     writer.table([
@@ -127,7 +130,7 @@ function writeEvents(writer, events) {
     if (!events.length) return;
     writer.section(t('report.section.events'));
     writer.table([
-        { key: 'datetime', label: t('report.column.datetime'), width: 31 },
+        { key: 'datetime', label: t('report.column.datetime'), width: 29 },
         { key: 'type', label: t('report.column.type'), width: 29 },
         { key: 'details', label: t('report.column.details'), width: 39 },
         { key: 'duration', label: t('report.column.duration'), width: 21 },
@@ -177,14 +180,16 @@ function writeMeasurements(writer, measurements) {
         { key: 'index', label: '#', width: 10 },
         { key: 'datetime', label: t('report.column.datetime'), width: 31 },
         { key: 'bp', label: t('report.column.bp'), width: 24 },
-        { key: 'pulse', label: t('report.column.pulse'), width: 18 },
-        { key: 'position', label: t('report.column.position'), width: 32 },
-        { key: 'flags', label: t('report.column.flags'), width: 31 },
-        { key: 'comment', label: t('report.column.comment'), width: 36 }
+        { key: 'map', label: 'MAP', width: 16 },
+        { key: 'pulse', label: t('report.column.pulse'), width: 16 },
+        { key: 'position', label: t('report.column.position'), width: 26 },
+        { key: 'flags', label: t('report.column.flags'), width: 27 },
+        { key: 'comment', label: t('report.column.comment'), width: 34 }
     ], measurements.map((measurement, index) => ({
         index: integer(index + 1),
         datetime: formatMeasurementDate(measurement.datetime),
         bp: `${measurement.systolic}/${measurement.diastolic}`,
+        map: decimal((measurement.systolic + 2 * measurement.diastolic) / 3),
         pulse: integer(measurement.pulse),
         position: measurementPosition(measurement),
         flags: measurementFlags(measurement),
@@ -194,12 +199,13 @@ function writeMeasurements(writer, measurements) {
 
 function summaryColumns() {
     return [
-        { key: 'scope', label: t('report.column.scope'), width: 40 },
-        { key: 'count', label: t('report.column.count'), width: 18 },
-        { key: 'averageBp', label: t('report.column.avg-bp'), width: 30 },
-        { key: 'averagePulse', label: t('report.column.avg-pulse'), width: 27 },
-        { key: 'averagePp', label: t('report.column.avg-pp'), width: 24 },
-        { key: 'systolicRange', label: t('report.column.sys-range'), width: 23 },
+        { key: 'scope', label: t('report.column.scope'), width: 34 },
+        { key: 'count', label: t('report.column.count'), width: 15 },
+        { key: 'averageBp', label: t('report.column.avg-bp'), width: 27 },
+        { key: 'averageMap', label: t('report.column.avg-map'), width: 22 },
+        { key: 'averagePulse', label: t('report.column.avg-pulse'), width: 22 },
+        { key: 'averagePp', label: t('report.column.avg-pp'), width: 20 },
+        { key: 'systolicRange', label: t('report.column.sys-range'), width: 22 },
         { key: 'diastolicRange', label: t('report.column.dia-range'), width: 20 }
     ];
 }
@@ -209,6 +215,7 @@ function summaryRow(scope, summary) {
         scope,
         count: integer(summary.count),
         averageBp: pressureAverage(summary),
+        averageMap: decimal(summary.meanArterialPressure?.mean),
         averagePulse: decimal(summary.pulse?.mean),
         averagePp: decimal(summary.pulsePressure?.mean),
         systolicRange: rangeValue(summary.systolic),

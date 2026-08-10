@@ -4,6 +4,7 @@ import { normalizeEvent } from './event-schema.js';
 export const DATA_SCHEMA = 'bpms';
 export const DATA_VERSION = 2;
 const ERRORS = new Set(['none', 'interrupted', 'movement', 'cuff-pressure', 'unknown']);
+const MEASUREMENT_EVENTS = new Set(['automatic', 'manual', 'retest', 'unknown']);
 
 export function createExportPayload({ deviceInfo = {}, measurements = [], events = [], sources = [] } = {}) {
     return {
@@ -54,6 +55,11 @@ export function normalizeMeasurement(value, index = 0) {
         error: enumOr(value.error, ERRORS, 'none'),
         bodyPosition: requiredEnum(value.bodyPosition, BODY_POSITION_SET, 'bodyPosition', index),
         measurementMethod: value.measurementMethod === 'manual' ? 'manual' : 'automatic',
+        measurementEvent: enumOr(
+            value.measurementEvent,
+            MEASUREMENT_EVENTS,
+            value.measurementMethod === 'manual' ? 'manual' : 'automatic'
+        ),
         hasMovement: Boolean(value.hasMovement),
         comment: normalizeComment(value.comment),
         edited: Boolean(value.edited),

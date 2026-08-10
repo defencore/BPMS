@@ -18,6 +18,7 @@ let refreshDashboard = () => {};
 let editingIndex = null;
 let editingAnchorKey = null;
 let contextDrafts = [];
+let optionalDetailsExpanded = null;
 
 // Template-generated DOM contract: measurement-datetime, measurement-systolic,
 // measurement-diastolic, and measurement-pulse are declared through inputField().
@@ -37,6 +38,10 @@ function renderMeasurementEditor() {
     const draft = readDraft(container);
     const isEditing = editingIndex !== null;
     const canAdd = getActiveConnector().capabilities.manualEntry;
+    const showOptionalDetails = optionalDetailsExpanded ?? (isEditing
+        || Boolean(draft?.comment)
+        || contextDrafts.length > 0
+        || !globalThis.matchMedia?.('(max-width: 767.98px)').matches);
     container.hidden = !isEditing && !canAdd;
     if (container.hidden) {
         container.replaceChildren();
@@ -57,23 +62,31 @@ function renderMeasurementEditor() {
             <div class="manual-entry-body">
                 <form id="measurement-editor-form">
                     <div class="manual-entry-grid">
-                        ${inputField('measurement-datetime', 'datetime-local', 'settings.manual.datetime')}
-                        ${inputField('measurement-systolic', 'number', 'settings.manual.systolic', 20, 300, 'SYS')}
-                        ${inputField('measurement-diastolic', 'number', 'settings.manual.diastolic', 20, 200, 'DIA')}
-                        ${inputField('measurement-pulse', 'number', 'settings.manual.pulse', 20, 250, 'BPM')}
+                        ${inputField({ id: 'measurement-datetime', type: 'datetime-local', labelKey: 'settings.manual.datetime', className: 'manual-datetime-field' })}
+                        ${inputField({ id: 'measurement-systolic', type: 'number', labelKey: 'settings.manual.systolic', min: 20, max: 300, prefix: 'SYS', className: 'manual-vital-field', enterKeyHint: 'next' })}
+                        ${inputField({ id: 'measurement-diastolic', type: 'number', labelKey: 'settings.manual.diastolic', min: 20, max: 200, prefix: 'DIA', className: 'manual-vital-field', enterKeyHint: 'next' })}
+                        ${inputField({ id: 'measurement-pulse', type: 'number', labelKey: 'settings.manual.pulse', min: 20, max: 250, prefix: 'BPM', className: 'manual-vital-field', enterKeyHint: 'done' })}
                         <div class="manual-position-field">
                             <label for="measurement-position" class="form-label">${t('settings.manual.position')}</label>
                             <select id="measurement-position" class="form-select" required>
                                 ${MANUAL_BODY_POSITIONS.map(value => `<option value="${value}">${t(bodyPositionLabelKey(value))}</option>`).join('')}
                             </select>
                         </div>
-                        <div class="manual-comment-field">
-                            <label for="measurement-comment" class="form-label">${t('manual-entry.comment')}</label>
-                            <textarea id="measurement-comment" class="form-control" rows="2" maxlength="500" placeholder="${t('manual-entry.comment-placeholder')}"></textarea>
-                            <div class="form-text">${t('manual-entry.comment-help')}</div>
+                    </div>
+                    <div class="manual-optional-details">
+                        <button class="manual-optional-toggle" type="button" aria-expanded="${showOptionalDetails}" aria-controls="manual-optional-panel">
+                            <span class="manual-optional-copy"><strong><i class="fas fa-comment-medical me-2" aria-hidden="true"></i>${t('manual-entry.optional-title')}</strong><small>${t('manual-entry.optional-help')}</small></span>
+                            <i class="fas fa-chevron-down manual-optional-chevron" aria-hidden="true"></i>
+                        </button>
+                        <div id="manual-optional-panel" class="manual-optional-content" ${showOptionalDetails ? '' : 'hidden'}>
+                            <div class="manual-comment-field">
+                                <label for="measurement-comment" class="form-label">${t('manual-entry.comment')}</label>
+                                <textarea id="measurement-comment" class="form-control" rows="2" maxlength="500" placeholder="${t('manual-entry.comment-placeholder')}"></textarea>
+                                <div class="form-text">${t('manual-entry.comment-help')}</div>
+                            </div>
+                            ${renderMeasurementContext(contextDrafts)}
                         </div>
                     </div>
-                    ${renderMeasurementContext(contextDrafts)}
                     <div class="manual-entry-footer mt-4">
                         <div id="measurement-reading-preview" class="manual-reading-preview" aria-live="polite"></div>
                         <div class="manual-entry-actions">
@@ -96,6 +109,7 @@ function bindEditor(container) {
     const form = container.querySelector('#measurement-editor-form');
     form?.addEventListener('submit', submitMeasurement);
     form?.querySelectorAll('input, select').forEach(control => control.addEventListener('input', updatePreview));
+    container.querySelector('.manual-optional-toggle')?.addEventListener('click', toggleOptionalDetails);
     bindMeasurementContext(container, contextDrafts, renderMeasurementEditor);
     container.querySelector('#btn-cancel-measurement-edit')?.addEventListener('click', cancelEditing);
 }
@@ -111,8 +125,9 @@ function submitMeasurement(event) {
         editingIndex = null;
         editingAnchorKey = null;
         contextDrafts = [];
+        optionalDetailsExpanded = null;
         refreshDashboard();
-        renderMeasurementEditor();
+        resetAndRenderEditor();
         showAlert(t(message), 'success');
     } catch (error) {
         showAlert(t('settings.invalid', { message: error.message }), 'danger');
@@ -170,6 +185,7 @@ function startEditing(event) {
     const measurement = getMeasurementAt(editingIndex);
     editingAnchorKey = measurementAnchorKey(measurement);
     contextDrafts = createMeasurementContextDrafts(eventsForMeasurement(state.events, measurement));
+    optionalDetailsExpanded = true;
     renderWithDraft(measurement);
 }
 
@@ -187,6 +203,20 @@ function cancelEditing() {
     editingIndex = null;
     editingAnchorKey = null;
     contextDrafts = [];
+    optionalDetailsExpanded = null;
+    resetAndRenderEditor();
+}
+
+function toggleOptionalDetails(event) {
+    const panel = document.getElementById('manual-optional-panel');
+    if (!panel) return;
+    optionalDetailsExpanded = panel.hidden;
+    panel.hidden = !optionalDetailsExpanded;
+    event.currentTarget.setAttribute('aria-expanded', String(optionalDetailsExpanded));
+}
+
+function resetAndRenderEditor() {
+    document.getElementById('measurement-editor')?.replaceChildren();
     renderMeasurementEditor();
 }
 
@@ -203,6 +233,7 @@ function setDefaultDateTime() {
     input.value = now.toISOString().slice(0, 16);
 }
 
-function inputField(id, type, labelKey, min = '', max = '', prefix = '') {
-    return `<div><label for="${id}" class="form-label">${t(labelKey)}</label><div class="input-group">${prefix ? `<span class="input-group-text">${prefix}</span>` : ''}<input id="${id}" class="form-control" type="${type}" ${min !== '' ? `min="${min}"` : ''} ${max !== '' ? `max="${max}"` : ''} required></div></div>`;
+function inputField({ id, type, labelKey, min = '', max = '', prefix = '', className = '', enterKeyHint = '' }) {
+    const numeric = type === 'number';
+    return `<div class="${className}"><label for="${id}" class="form-label">${t(labelKey)}</label><div class="input-group">${prefix ? `<span class="input-group-text">${prefix}</span>` : ''}<input id="${id}" class="form-control" type="${type}" ${numeric ? 'inputmode="numeric" step="1" autocomplete="off"' : ''} ${enterKeyHint ? `enterkeyhint="${enterKeyHint}"` : ''} ${min !== '' ? `min="${min}"` : ''} ${max !== '' ? `max="${max}"` : ''} required></div></div>`;
 }

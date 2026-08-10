@@ -5,6 +5,9 @@ import { showAlert } from '../ui/alerts.js';
 import { renderSettingsView } from './settings-view.js';
 import { activateTabTarget, getActiveTabTarget } from '../ui/tab-state.js';
 import { openUsagePolicy } from './usage-policy.js';
+import { normalizeManualDeviceInfo } from '../core/manual-device-info.js';
+import { normalizePatientName } from '../core/session-metadata.js';
+import { state, updateDeviceInfo } from '../core/state.js';
 
 let refreshDashboard = () => {};
 
@@ -18,7 +21,7 @@ function render() {
     const container = document.getElementById('application-settings');
     if (!container) return;
     const activeSettingsTab = getActiveTabTarget('.settings-nav', '#settings-connectors');
-    renderSettingsView(container, listConnectors(), activeSettingsTab, getSettings());
+    renderSettingsView(container, listConnectors(), activeSettingsTab, getSettings(), state.deviceInfo);
     bindEvents(container);
     populateSettings(container);
     renderConnectorPanel();
@@ -35,10 +38,36 @@ function bindEvents(container) {
     container.querySelector('#btn-add-event-preset')?.addEventListener('click', addEventPreset);
     container.querySelectorAll('[data-delete-event-preset]').forEach(button => button.addEventListener('click', deleteEventPreset));
     container.querySelector('#remote-settings-form')?.addEventListener('submit', event => saveForm(event, 'remote'));
+    container.querySelector('#session-metadata-form')?.addEventListener('submit', saveSessionMetadata);
+    container.querySelector('#manual-device-form')?.addEventListener('submit', saveManualDeviceInfo);
     container.querySelector('#btn-open-manual-entry')?.addEventListener('click', () => activateTabTarget('#monitoring'));
     container.querySelectorAll('[data-reset-settings]').forEach(button => button.addEventListener('click', resetSection));
     container.querySelector('#btn-clear-local-data')?.addEventListener('click', clearLocalData);
     container.querySelector('#btn-open-usage-policy')?.addEventListener('click', () => openUsagePolicy());
+}
+
+function saveSessionMetadata(event) {
+    event.preventDefault();
+    const username = normalizePatientName(event.currentTarget.querySelector('#session-patient-name')?.value ?? '');
+    updateDeviceInfo({ username });
+    const manualPatientInput = event.currentTarget.closest('#application-settings')
+        ?.querySelector('[data-manual-device-field="username"]');
+    if (manualPatientInput) manualPatientInput.value = username ?? '';
+    refreshDashboard();
+    showAlert(t('settings.session.saved'), 'success');
+}
+
+function saveManualDeviceInfo(event) {
+    event.preventDefault();
+    try {
+        const values = Object.fromEntries([...event.currentTarget.querySelectorAll('[data-manual-device-field]')]
+            .map(input => [input.dataset.manualDeviceField, input.value]));
+        updateDeviceInfo(normalizeManualDeviceInfo(values));
+        refreshDashboard();
+        showAlert(t('settings.manual.device-saved'), 'success');
+    } catch (error) {
+        showAlert(t('settings.invalid', { message: error.message }), 'danger');
+    }
 }
 
 function populateSettings(container) {

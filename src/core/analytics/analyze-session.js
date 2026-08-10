@@ -1,6 +1,9 @@
 import { filterAnalysisMeasurements } from '../analysis-data.js';
 import { calculateDipping, calculateMorningSurge, partitionByWakeState } from './circadian.js';
+import { analyzeMeasurementCorrelations } from './correlation.js';
 import { calculatePressureExposure } from './exposure.js';
+import { summarizeExtremes } from './extremes.js';
+import { buildHourlyProfile } from './hourly-profile.js';
 import { assessSessionQuality } from './quality.js';
 import { summarizeMeasurements } from './statistics.js';
 
@@ -22,6 +25,12 @@ export function analyzeMonitoringSession(session, events, settings) {
         measurement => thresholdForMeasurement(measurement, periods.night, settings),
         Math.max(settings.monitoring.dayIntervalMinutes, settings.monitoring.nightIntervalMinutes) * 2
     );
+    const maximumInterval = Math.max(settings.monitoring.dayIntervalMinutes, settings.monitoring.nightIntervalMinutes) * 2;
+    const exposures = Object.freeze({
+        full: exposure,
+        day: calculatePressureExposure(periods.day, () => thresholdForPeriod(settings, 'day'), maximumInterval),
+        night: calculatePressureExposure(periods.night, () => thresholdForPeriod(settings, 'night'), maximumInterval)
+    });
 
     return Object.freeze({
         session,
@@ -33,6 +42,14 @@ export function analyzeMonitoringSession(session, events, settings) {
         dipping,
         morningSurge,
         exposure,
+        exposures,
+        extremes: Object.freeze({
+            full: summarizeExtremes(valid),
+            day: summarizeExtremes(periods.day),
+            night: summarizeExtremes(periods.night)
+        }),
+        hourlyProfile: buildHourlyProfile(valid),
+        correlations: analyzeMeasurementCorrelations(valid),
         profile: settings.monitoring.profile,
         thresholds: settings.referenceProfiles[settings.monitoring.profile]
     });

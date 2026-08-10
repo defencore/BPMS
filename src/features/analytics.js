@@ -6,8 +6,17 @@ import { filterAnalysisMeasurements } from '../core/analysis-data.js';
 import { CLINICAL_SOURCES } from '../core/clinical-sources.js';
 import { getSettings } from '../core/settings-store.js';
 import { state } from '../core/state.js';
-import { formatDate, formatNumber, getLocale, t } from '../i18n/i18n.js';
+import { formatDate, formatNumber, t } from '../i18n/i18n.js';
 import { escapeHtml } from '../ui/html.js';
+import { renderAnalyticsClinicalDetails } from './analytics-clinical-details.js';
+import { renderAnalyticsSummaryTable } from './analytics-summary-table.js';
+import {
+    isCompactChartViewport,
+    responsiveAxisTitle,
+    responsiveLegend,
+    responsiveTicks,
+    responsiveTooltip
+} from './charts/responsive-options.js';
 
 let monthlyPressureChart = null;
 let dailyProfileChart = null;
@@ -98,9 +107,10 @@ function renderSessionAnalytics(analysis, settings) {
             </div>
         </div>
         <div class="analysis-method-note"><i class="fas fa-circle-info"></i><span>${t('analytics.session.method-note', { profile: t(`settings.profile.${analysis.profile}`), expected: quality.expectedReadings, excluded: quality.excluded })} <a href="${CLINICAL_SOURCES[2].url}" target="_blank" rel="noopener noreferrer">${t('methodology.open-source')} <i class="fas fa-arrow-up-right-from-square"></i></a></span></div>
-        ${summaryTable(summaries)}
+        ${renderAnalyticsSummaryTable(summaries)}
         <div class="derived-metrics-grid">
             ${metricCard('fa-arrows-left-right', 'analytics.metric.pulse-pressure', number(summaries.full?.pulsePressure?.mean), t('unit.mm-short'), 'analytics.metric.pulse-pressure-help')}
+            ${metricCard('fa-wave-square', 'analytics.metric.map', number(summaries.full?.meanArterialPressure?.mean), t('unit.mm-short'), 'analytics.metric.map-help')}
             ${metricCard('fa-heart-circle-bolt', 'analytics.metric.rpp', number(summaries.full?.scaledRpp?.mean), t('analytics.unit.scaled-rpp'), 'analytics.metric.rpp-help')}
             ${variabilityCard(summaries.full)}
             ${dippingCard(dipping)}
@@ -109,15 +119,8 @@ function renderSessionAnalytics(analysis, settings) {
             ${hyperbaricCard(exposure)}
             ${morningCard(morningSurge)}
         </div>
+        ${renderAnalyticsClinicalDetails(analysis)}
         ${eventTimeline(analysis.events)}`;
-}
-
-function summaryTable(summaries) {
-    return `<div class="analysis-table-wrap"><table class="table analysis-summary-table"><thead><tr><th>${t('analytics.period')}</th><th>${t('analytics.readings')}</th><th>SBP</th><th>DBP</th><th>HR</th><th>PP</th><th>SD SBP</th><th>CV SBP</th><th>ARV SBP</th></tr></thead><tbody>${[
-        ['full', summaries.full],
-        ['day', summaries.day],
-        ['night', summaries.night]
-    ].map(([period, summary]) => `<tr><th>${t(`analytics.period.${period}`)}</th><td>${summary?.count ?? 0}</td><td>${number(summary?.systolic?.mean)}</td><td>${number(summary?.diastolic?.mean)}</td><td>${number(summary?.pulse?.mean)}</td><td>${number(summary?.pulsePressure?.mean)}</td><td>${number(summary?.systolic?.sd)}</td><td>${number(summary?.systolic?.cv)}%</td><td>${number(summary?.systolic?.arv)}</td></tr>`).join('')}</tbody></table></div>`;
 }
 
 function qualityCheck(icon, key, value, suffix, passed) {
@@ -178,17 +181,32 @@ function ensureCharts() {
 function createLineChart(id) {
     const canvas = document.getElementById(id);
     if (!canvas) return null;
+    const compact = isCompactChartViewport();
     return new Chart(canvas.getContext('2d'), {
         type: 'line',
         data: { labels: [], datasets: pressureDatasets() },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: { duration: compact ? 0 : 400 },
+            layout: { padding: compact ? 0 : 4 },
             interaction: { mode: 'index', intersect: false },
-            plugins: { legend: { position: 'top' } },
+            plugins: {
+                legend: responsiveLegend(),
+                tooltip: responsiveTooltip()
+            },
             scales: {
-                x: { grid: { display: false } },
-                y: { beginAtZero: false, suggestedMin: 60, suggestedMax: 170, title: { display: true, text: t('Pressure (mmHg)') } }
+                x: {
+                    grid: { display: false },
+                    ticks: responsiveTicks(undefined, { maxTicks: 6 })
+                },
+                y: {
+                    beginAtZero: false,
+                    suggestedMin: 60,
+                    suggestedMax: 170,
+                    ticks: responsiveTicks(undefined, { maxTicks: 5 }),
+                    title: responsiveAxisTitle(t('Pressure (mmHg)'))
+                }
             }
         }
     });

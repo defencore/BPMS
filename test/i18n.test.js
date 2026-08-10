@@ -6,7 +6,7 @@ import { catalogs, LANGUAGE_DEFINITIONS, SUPPORTED_LANGUAGES } from '../src/i18n
 import en from '../src/i18n/locales/en.js';
 import ru from '../src/i18n/locales/ru.js';
 import uk from '../src/i18n/locales/uk.js';
-import { translateMessage } from '../src/i18n/i18n.js';
+import { resolveSystemLanguage, translateMessage } from '../src/i18n/i18n.js';
 
 const CYRILLIC = /[\u0400-\u04FF]/u;
 
@@ -49,6 +49,14 @@ test('missing translations fall back to the English source string', () => {
     assert.equal(translateMessage('Unknown text', 'en'), 'Unknown text');
     assert.equal(translateMessage('Unknown text', 'uk'), 'Unknown text');
     assert.equal(translateMessage('Unknown text', 'ru'), 'Unknown text');
+});
+
+test('first launch uses Ukrainian or Russian system locale and English otherwise', () => {
+    assert.equal(resolveSystemLanguage('uk-UA'), 'uk');
+    assert.equal(resolveSystemLanguage('ru-RU'), 'ru');
+    assert.equal(resolveSystemLanguage('en-GB'), 'en');
+    assert.equal(resolveSystemLanguage('de-DE'), 'en');
+    assert.equal(resolveSystemLanguage(undefined), 'en');
 });
 
 function extractInterfaceStrings(html) {

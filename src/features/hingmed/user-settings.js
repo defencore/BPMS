@@ -12,15 +12,12 @@ export function initUserSettings(client, onDeviceInfoChanged) {
 async function save(client, onDeviceInfoChanged) {
     if (!client.isConnected()) return showAlert(t('hingmed.not-connected'), 'danger');
     if (blockIfDeviceBusy()) return;
-    const username = value('user-name-input');
     const userId = value('user-id-input');
-    if (!username && !userId) return showAlert(t('hingmed.user-value-required'), 'warning');
+    if (!userId) return showAlert(t('hingmed.user-value-required'), 'warning');
     await runDeviceOperation('user-save', async () => {
         try {
-            const changes = {};
-            if (username) changes.username = await client.setUserName(username);
-            if (userId) changes.userId = await client.setUserId(userId);
-            onDeviceInfoChanged(changes);
+            const savedUserId = await client.setUserId(userId);
+            onDeviceInfoChanged({ userId: savedUserId });
             showAlert(t('hingmed.user-saved'), 'success');
         } catch (error) {
             showAlert(t('hingmed.operation-error', { message: error.message }), 'danger');
@@ -33,11 +30,9 @@ async function load(client, onDeviceInfoChanged) {
     if (blockIfDeviceBusy()) return;
     await runDeviceOperation('user-load', async () => {
         try {
-            const username = await client.getUserName();
             const userId = await client.getUserId();
-            if (username) document.getElementById('user-name-input').value = username;
             if (userId) document.getElementById('user-id-input').value = userId;
-            onDeviceInfoChanged({ username, userId });
+            onDeviceInfoChanged({ userId });
         } catch (error) {
             showAlert(t('hingmed.operation-error', { message: error.message }), 'danger');
         }

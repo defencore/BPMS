@@ -87,7 +87,7 @@ async function clearHingmedDeviceMemory() {
 
 export async function disconnectHingmed() {
     await client.disconnect();
-    persistDeviceInfo({}, true);
+    persistDeviceInfo({ username: state.deviceInfo.username }, true);
     setHingmedControlsEnabled(false);
     refreshDashboard();
     addToTerminal(t('hingmed.disconnected'), 'system');
@@ -122,9 +122,13 @@ export async function fetchHingmedMeasurements() {
 }
 
 async function hydrateDeviceInfo() {
+    const userId = await optional(() => client.getUserId());
+    if (userId !== null) {
+        const input = document.getElementById('user-id-input');
+        if (input) input.value = userId;
+    }
     persistDeviceInfo({
-        username: await optional(() => client.getUserName()),
-        userId: await optional(() => client.getUserId()),
+        userId,
         numRecords: await optional(() => client.getRecordCount()) ?? 0,
         serialNumber: await optional(() => client.getDeviceCode()),
         macAddress: await optional(() => client.getMacAddress())

@@ -1,5 +1,8 @@
 import { filterAnalysisMeasurements } from '../../core/analysis-data.js';
 import { analyzeMonitoringSession } from '../../core/analytics/analyze-session.js';
+import { analyzeMeasurementCorrelations } from '../../core/analytics/correlation.js';
+import { summarizeExtremes } from '../../core/analytics/extremes.js';
+import { buildHourlyProfile } from '../../core/analytics/hourly-profile.js';
 import { buildMonitoringSessions } from '../../core/analytics/sessions.js';
 import { analyzeEventCorrelations } from '../../core/analytics/event-correlation.js';
 import { summarizeMeasurements } from '../../core/analytics/statistics.js';
@@ -25,6 +28,9 @@ export function buildReportModel({ measurements, events, settings, deviceInfo })
         settings,
         range: Object.freeze({ start: dates[0] ?? null, end: dates.at(-1) ?? null }),
         summary: summarizeMeasurements(primaryMeasurements),
+        extremes: summarizeExtremes(primaryMeasurements),
+        hourlyProfile: buildHourlyProfile(primaryMeasurements),
+        correlations: analyzeMeasurementCorrelations(primaryMeasurements),
         allValuesSummary: summarizeMeasurements(chartMeasurements),
         quality: qualitySummary(recorded, chartMeasurements, primaryMeasurements),
         daily: Object.freeze(dailySummaries(chartMeasurements, primaryMeasurements)),

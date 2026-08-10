@@ -2,14 +2,22 @@ import { COMMANDS } from '../../core/constants.js';
 import {
     appendCRC,
     buildCommandPacket,
-    decodeMeasurementPacket,
+    packetsEqual,
     parseHexString
 } from '../../core/protocol.js';
 import { SerialSession } from './serial-session.js';
+import {
+    decodeMeasurementPacket,
+    decodeRecordCount,
+    decodeSessionId,
+    encodeSessionId,
+    HANDSHAKE_REQUEST,
+    isHandshakeResponse
+} from './serial-codec.js';
+import { assertCompleteUsbProfile } from './usb-profile.js';
 
-const HANDSHAKE = parseHexString('5A 0F 52 52 00 69 00 58 00 6F 00 6E 00 B9 9D');
-const SAVE_AND_EXIT = parseHexString('5A 05 90 EF 52');
 const ERROR_RESPONSE = 0xD3;
+const DEFAULT_ATTEMPTS = 3;
 
 export class HingmedClient {
     #session;
@@ -35,40 +43,50 @@ export class HingmedClient {
     }
 
     async handshake() {
-        const response = await this.#session.exchange(HANDSHAKE, {
-            expectedCommand: COMMANDS.HANDSHAKE,
-            timeout: 3000
-        });
-        if (isError(response)) throw new Error('Device rejected the handshake');
-        const echo = response.length === HANDSHAKE.length
-            && response.every((value, index) => value === HANDSHAKE[index]);
-        return echo ? 'WBP-02A' : decodeDeviceIdentifier(response) || 'WBP-02A';
-    }
-
-    async getUserName() {
-        return this.#readText(COMMANDS.GET_USERNAME, 3000);
+        let lastError;
+        for (let attempt = 1; attempt <= DEFAULT_ATTEMPTS; attempt += 1) {
+            try {
+                await this.#session.write(HANDSHAKE_REQUEST);
+                await delay(100);
+                this.#session.discardBufferedPackets?.();
+                const response = await this.#session.exchange(HANDSHAKE_REQUEST, {
+                    expectedCommand: null,
+                    predicate: isHandshakeResponse,
+                    timeout: 1100
+                });
+                if (!isHandshakeResponse(response)) throw new Error('Invalid WBP-02A handshake response');
+                return 'WBP-02A';
+            } catch (error) {
+                lastError = error;
+            }
+        }
+        throw new Error(`WBP-02A handshake failed after ${DEFAULT_ATTEMPTS} attempts: ${lastError?.message ?? 'no response'}`);
     }
 
     async getUserId() {
-        return this.#readText(COMMANDS.GET_USER_ID, 3000);
-    }
-
-    async setUserName(value) {
-        return this.#writeText(COMMANDS.SET_USERNAME, value, 32);
+        const response = await this.command(COMMANDS.GET_USER_ID, [], { timeout: 2000, expectedLength: 9 });
+        return String(decodeSessionId(response));
     }
 
     async setUserId(value) {
-        return this.#writeText(COMMANDS.SET_USER_ID, value, 16);
+        const sessionId = String(Number(value));
+        await this.writeCommandConfirmed(COMMANDS.SET_USER_ID, encodeSessionId(value));
+        return sessionId;
     }
 
     async getRecordCount() {
-        const response = await this.command(COMMANDS.GET_STATUS);
-        return response.length >= 6 ? response[4] : 0;
+        const response = await this.command(COMMANDS.GET_STATUS, [], { expectedLength: 7 });
+        return decodeRecordCount(response);
     }
 
     async getRecord(index) {
-        if (!Number.isInteger(index) || index < 0 || index > 0xFF) throw new RangeError('Record index must be a byte');
-        const response = await this.command(COMMANDS.GET_RECORD, [0, index], { timeout: 3000 });
+        if (!Number.isInteger(index) || index < 0 || index > 0xFFFF) {
+            throw new RangeError('Record index must be between 0 and 65535');
+        }
+        const response = await this.command(COMMANDS.GET_RECORD, [index >> 8, index & 0xFF], {
+            timeout: 2000,
+            expectedLength: 18
+        });
         return decodeMeasurementPacket(response, index);
     }
 
@@ -118,31 +136,38 @@ export class HingmedClient {
     }
 
     async writeSequence(steps, delayMs = 200) {
+        // This unconfirmed path is retained only for the separately reverse-engineered
+        // Wi-Fi extension. USB programming uses writeConfirmedSequence below.
         for (const step of steps) {
             await this.writeCommand(step.command, step.payload);
             if (delayMs) await delay(delayMs);
         }
     }
 
+    async writeConfirmedSequence(steps, delayMs = 0) {
+        for (const step of steps) {
+            await this.writeCommandConfirmed(step.command, step.payload);
+            if (delayMs) await delay(delayMs);
+        }
+    }
+
     async programDevice(steps, {
         now = new Date(),
-        delayMs = 200,
-        clearSettleMs = 300,
+        delayMs = 0,
+        clearSettleMs = 0,
         settleMs = 1000
     } = {}) {
-        if (!Array.isArray(steps) || steps.length === 0) {
-            throw new TypeError('A complete device profile is required for programming');
-        }
+        assertCompleteUsbProfile(steps);
         await this.handshake();
         await this.command(COMMANDS.CLEAR_RECORDS, [], { timeout: 5000 });
         if (clearSettleMs) await delay(clearSettleMs);
-        await this.writeSequence(steps, delayMs);
+        await this.writeConfirmedSequence(steps, delayMs);
         return this.#completeProgramming({ now, delayMs, settleMs });
     }
 
     async syncClock(now = new Date()) {
         const clockSentAt = new Date(now);
-        await this.writeCommand(COMMANDS.SET_DEVICE_TIME, encodeDeviceTime(clockSentAt));
+        await this.writeCommandConfirmed(COMMANDS.SET_DEVICE_TIME, encodeDeviceTime(clockSentAt));
         return clockSentAt;
     }
 
@@ -151,9 +176,14 @@ export class HingmedClient {
     }
 
     async command(command, payload = [], options = {}) {
-        const response = await this.#session.exchange(buildCommandPacket(command, payload), {
-            expectedCommand: options.expectedCommand ?? command,
-            timeout: options.timeout ?? 2000
+        const packet = buildCommandPacket(command, payload);
+        const response = await this.#exchangeWithRetry(packet, {
+            predicate: response => isError(response) || (
+                response?.[2] === (options.expectedCommand ?? command)
+                && (!options.expectedLength || response.length === options.expectedLength)
+            ),
+            timeout: options.timeout ?? 2000,
+            attempts: options.attempts ?? DEFAULT_ATTEMPTS
         });
         if (isError(response)) throw new Error(`Device rejected command 0x${command.toString(16).toUpperCase()}`);
         return response;
@@ -161,6 +191,17 @@ export class HingmedClient {
 
     writeCommand(command, payload = []) {
         return this.#session.write(buildCommandPacket(command, payload));
+    }
+
+    async writeCommandConfirmed(command, payload = [], { timeout = 2000, attempts = DEFAULT_ATTEMPTS } = {}) {
+        const packet = buildCommandPacket(command, payload);
+        const response = await this.#exchangeWithRetry(packet, {
+            predicate: candidate => isError(candidate) || packetsEqual(candidate, packet),
+            timeout,
+            attempts
+        });
+        if (isError(response)) throw new Error(`Device rejected command 0x${command.toString(16).toUpperCase()}`);
+        return response;
     }
 
     async customCommand(hexValue) {
@@ -174,17 +215,10 @@ export class HingmedClient {
         return new TextDecoder().decode(response.slice(3, response[1] - 2)).replaceAll('\0', '').trim() || null;
     }
 
-    async #writeText(command, value, maxLength) {
-        const text = requiredText(value, 'Value');
-        if (text.length > maxLength) throw new RangeError(`Value must not exceed ${maxLength} characters`);
-        await this.command(command, encodeText(text), { timeout: 3000 });
-        return text;
-    }
-
     async #completeProgramming({ now, delayMs, settleMs }) {
         const clockSentAt = await this.syncClock(now);
         if (delayMs) await delay(delayMs);
-        await this.#session.write(SAVE_AND_EXIT);
+        await this.writeCommandConfirmed(0x90, [], { timeout: 1600 });
         if (settleMs) await delay(settleMs);
         const recordCount = await this.#verifyRecordCount();
         return Object.freeze({ clockSentAt, recordCount });
@@ -196,6 +230,24 @@ export class HingmedClient {
         } catch {
             return null;
         }
+    }
+
+    async #exchangeWithRetry(packet, { predicate, timeout, attempts }) {
+        let lastError;
+        for (let attempt = 1; attempt <= attempts; attempt += 1) {
+            try {
+                const response = await this.#session.exchange(packet, {
+                    expectedCommand: null,
+                    predicate,
+                    timeout
+                });
+                if (!predicate(response)) throw new Error('Device returned an unexpected response');
+                return response;
+            } catch (error) {
+                lastError = error;
+            }
+        }
+        throw new Error(`Command 0x${packet[2].toString(16).toUpperCase()} failed after ${attempts} attempts: ${lastError?.message ?? 'no response'}`);
     }
 }
 
@@ -222,15 +274,6 @@ export function encodeDeviceTime(value) {
 
 function formatIpv4(bytes) {
     return [...bytes].join('.');
-}
-
-function decodeDeviceIdentifier(response) {
-    const payload = response.slice(3, response[1] - 2);
-    const utf16 = [];
-    for (let index = 0; index + 1 < payload.length; index += 2) {
-        if (payload[index] === 0 && payload[index + 1] !== 0) utf16.push(payload[index + 1]);
-    }
-    return new TextDecoder().decode(new Uint8Array(utf16)).trim();
 }
 
 function encodeText(value) {

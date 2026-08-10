@@ -523,10 +523,19 @@
 
 .chart-container {
     height: 500px;
+    max-width: 100%;
+    overflow: hidden;
+    position: relative;
     width: 100%;
     padding: 1rem;
     background-color: #fafbfc;
     border-radius: 12px;
+}
+
+.chart-container > canvas {
+    display: block;
+    max-height: 100%;
+    max-width: 100%;
 }
 
 .device-info-inline {
@@ -621,6 +630,35 @@ h6 {
 .critical-warning-header i {
     font-size: 1.5rem;
     margin-right: 0.75rem;
+}
+
+.critical-warning-header span {
+    flex: 1 1 auto;
+}
+
+.critical-warning-dismiss {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    color: #64748b;
+    display: inline-flex;
+    flex: 0 0 auto;
+    height: 2.5rem;
+    justify-content: center;
+    margin-left: 0.5rem;
+    width: 2.5rem;
+}
+
+.critical-warning-dismiss:hover,
+.critical-warning-dismiss:focus-visible {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.critical-warning-header .critical-warning-dismiss i {
+    font-size: 1rem;
+    margin: 0;
 }
 
 .bp-classification {

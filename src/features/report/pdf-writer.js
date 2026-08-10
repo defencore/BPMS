@@ -23,7 +23,7 @@ class PdfWriter {
         this.bottom = 282;
     }
 
-    cover({ title, subtitle, notice, range, generated, site }) {
+    cover({ title, subtitle, notice, patient, range, generated, site }) {
         this.pdf.setFillColor(15, 23, 42);
         this.pdf.rect(0, 0, 210, 50, 'F');
         this.pdf.setFillColor(...COLORS.primary);
@@ -43,6 +43,7 @@ class PdfWriter {
         this.pdf.textWithLink(site.value, this.margin + this.contentWidth, 40.2, { align: 'right', url: site.url });
         this.pdf.setTextColor(...COLORS.text);
         this.y = 60;
+        if (patient) this.keyValue(patient.label, patient.value);
         this.keyValue(range.label, range.value);
         this.keyValue(generated.label, generated.value);
         this.keyValue(site.label, site.value);

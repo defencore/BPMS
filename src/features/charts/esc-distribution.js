@@ -1,6 +1,7 @@
 import { classifyBloodPressure } from '../../core/blood-pressure.js';
 import { state } from '../../core/state.js';
 import { t } from '../../i18n/i18n.js';
+import { isCompactChartViewport, responsiveLegend, responsiveTooltip } from './responsive-options.js';
 
 export function updateESCDistributionChart() {
     const canvas = document.getElementById('esc-distribution-chart');
@@ -15,6 +16,7 @@ export function updateESCDistributionChart() {
     }
 
     if (!state.charts.escDistribution) {
+        const compact = isCompactChartViewport();
         state.charts.escDistribution = new Chart(ctx, {
             type: 'doughnut',
             data: {
@@ -29,19 +31,11 @@ export function updateESCDistributionChart() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: { duration: compact ? 0 : 400 },
+                cutout: compact ? '64%' : '50%',
                 plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 20,
-                            font: {
-                                size: 12
-                            }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
+                    legend: responsiveLegend('right'),
+                    tooltip: responsiveTooltip({
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.parsed;
@@ -49,8 +43,7 @@ export function updateESCDistributionChart() {
                                 const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                                 return `${label}: ${value} (${percentage}%)`;
                             }
-                        }
-                    }
+                        })
                 }
             }
         });

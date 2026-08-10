@@ -11,6 +11,7 @@ test('settings use current ESC values by default and persist valid changes', () 
     const storage = memoryStorage();
     const repository = createSettingsRepository(storage);
     const defaults = repository.get();
+    assert.equal(defaults.connector.active, 'manual');
     assert.equal(defaults.esc2024.crisisSystolic, 180);
     assert.equal(defaults.esc2024.riskZones.optimalSystolic, 120);
     assert.equal(defaults.patterns.morningSurge, 20);

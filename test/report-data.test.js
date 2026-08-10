@@ -27,6 +27,10 @@ test('report keeps complete data while primary summary respects analysis filters
     assert.equal(model.sessions.length, 1);
     assert.equal(model.allValuesSummary.count, 3);
     assert.equal(model.summary.count, 2);
+    assert.ok(model.summary.meanArterialPressure.mean > 90);
+    assert.equal(model.hourlyProfile.length, 24);
+    assert.equal(model.extremes.systolic.max.value, 130);
+    assert.equal(model.correlations.length, 4);
     assert.equal(model.visuals.calendar.days.at(-1).count, 1);
     assert.equal(model.visuals.escDistribution.reduce((sum, item) => sum + item.count, 0), 2);
 });

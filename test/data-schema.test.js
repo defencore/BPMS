@@ -11,6 +11,7 @@ const source = {
     error: 'none',
     bodyPosition: 'lying',
     measurementMethod: 'automatic',
+    measurementEvent: 'automatic',
     hasMovement: false,
     comment: '',
     edited: false,

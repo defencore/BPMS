@@ -2,6 +2,7 @@ import { t } from '../i18n/i18n.js';
 import { CLINICAL_SOURCES } from '../core/clinical-sources.js';
 import { EVENT_TYPES } from '../core/event-schema.js';
 import { escapeHtml } from '../ui/html.js';
+import { renderSessionSettingsPanel } from './session-settings-view.js';
 
 const escFields = [
     ['crisisSystolic', 'settings.esc.crisis-systolic'],
@@ -68,7 +69,7 @@ const analysisFlags = [
     ['ignoreErrorReadings', 'settings.analysis.ignore-errors']
 ];
 
-export function renderSettingsView(container, connectors, activeTarget = '#settings-connectors', settings = {}) {
+export function renderSettingsView(container, connectors, activeTarget = '#settings-connectors', settings = {}, deviceInfo = {}) {
     container.dataset.i18nSkip = '';
     container.innerHTML = `
         <div class="card settings-workspace mb-4">
@@ -79,6 +80,7 @@ export function renderSettingsView(container, connectors, activeTarget = '#setti
             <div class="card-body settings-workspace-body">
                 <aside class="settings-sidebar">
                     <ul class="nav nav-pills settings-nav" role="tablist">
+                        ${tabButton('session', 'fa-user', 'settings.tab.session', activeTarget)}
                         ${tabButton('connectors', 'fa-plug', 'settings.tab.connectors', activeTarget)}
                         ${tabButton('esc', 'fa-heart-pulse', 'settings.tab.esc', activeTarget)}
                         ${tabButton('patterns', 'fa-wave-square', 'settings.tab.patterns', activeTarget)}
@@ -89,8 +91,11 @@ export function renderSettingsView(container, connectors, activeTarget = '#setti
                 </aside>
                 <main class="settings-content-panel">
                 <div class="tab-content settings-tab-content">
+                    <div class="tab-pane fade${paneActive('session', activeTarget)}" id="settings-session" role="tabpanel">
+                        ${renderSessionSettingsPanel(deviceInfo)}
+                    </div>
                     <div class="tab-pane fade${paneActive('connectors', activeTarget)}" id="settings-connectors" role="tabpanel">
-                        ${connectorPanel(connectors)}
+                        ${connectorPanel(connectors, deviceInfo)}
                     </div>
                     <div class="tab-pane fade${paneActive('esc', activeTarget)}" id="settings-esc" role="tabpanel">
                         <form id="esc-settings-form">
@@ -178,7 +183,7 @@ function presetInput(field, labelKey, value, type, attributes = '', placeholder 
     return `<div class="settings-field"><label class="form-label">${t(labelKey)}</label><input class="form-control" type="${type}" value="${escapeHtml(String(value ?? ''))}" ${attributes} ${placeholder ? `placeholder="${escapeHtml(placeholder)}"` : ''} data-preset-field="${field}"></div>`;
 }
 
-function connectorPanel(connectors) {
+function connectorPanel(connectors, deviceInfo) {
     const options = connectors.map(connector => `<option value="${connector.id}">${t(connector.labelKey)}</option>`).join('');
     return `
         <div class="settings-section-heading">
@@ -201,7 +206,22 @@ function connectorPanel(connectors) {
                 <div class="connector-config" data-connector-panel="manual" hidden>
                     <h6><i class="fas fa-keyboard me-2"></i>${t('connector.manual.label')}</h6>
                     <p class="text-muted">${t('settings.manual.monitoring-help')}</p>
-                    <button id="btn-open-manual-entry" class="btn btn-primary" type="button"><i class="fas fa-arrow-up-right-from-square me-2"></i>${t('settings.manual.open-monitoring')}</button>
+                    <form id="manual-device-form">
+                        <div class="settings-group manual-device-group">
+                            <div class="settings-group-heading mb-3"><span class="settings-group-icon"><i class="fas fa-id-card"></i></span><div><h6>${t('settings.manual.device-title')}</h6><p>${t('settings.manual.device-description')}</p></div></div>
+                            <div class="settings-field-grid manual-device-grid">
+                                ${manualDeviceInput('manual-device-id', 'id', 'settings.manual.device-id', deviceInfo.id, true)}
+                                ${manualDeviceInput('manual-device-serial', 'serialNumber', 'settings.manual.serial-number', deviceInfo.serialNumber, true)}
+                                ${manualDeviceInput('manual-device-mac', 'macAddress', 'settings.manual.mac-address', deviceInfo.macAddress, true)}
+                                ${manualDeviceInput('manual-device-user', 'username', 'settings.session.patient-name', deviceInfo.username)}
+                                ${manualDeviceInput('manual-device-user-id', 'userId', 'settings.manual.user-id', deviceInfo.userId)}
+                            </div>
+                        </div>
+                        <div class="settings-form-actions manual-device-actions">
+                            <button class="btn btn-primary" type="submit"><i class="fas fa-save me-2"></i>${t('settings.manual.save-device')}</button>
+                            <button id="btn-open-manual-entry" class="btn btn-outline-primary" type="button"><i class="fas fa-arrow-up-right-from-square me-2"></i>${t('settings.manual.open-monitoring')}</button>
+                        </div>
+                    </form>
                 </div>
                 <div class="connector-config" data-connector-panel="remote" hidden>
                     <h6><i class="fas fa-cloud me-2"></i>${t('connector.remote.label')}</h6>
@@ -220,6 +240,10 @@ function connectorPanel(connectors) {
                 </div>
             </section>
         </div>`;
+}
+
+function manualDeviceInput(id, field, labelKey, value, required = false) {
+    return `<div class="settings-field"><label for="${id}" class="form-label">${t(labelKey)}</label><input id="${id}" class="form-control" type="text" maxlength="128" value="${escapeHtml(String(value ?? ''))}" data-manual-device-field="${field}" ${required ? 'required' : ''}></div>`;
 }
 
 function tabButton(id, icon, key, activeTarget) {

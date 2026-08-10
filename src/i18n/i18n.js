@@ -77,8 +77,12 @@ function resolveLanguage() {
     if (SUPPORTED_LANGUAGES.includes(queryLanguage)) return queryLanguage;
     const savedLanguage = localStorage.getItem(STORAGE_KEY);
     if (SUPPORTED_LANGUAGES.includes(savedLanguage)) return savedLanguage;
-    const browserLanguage = navigator.language?.slice(0, 2).toLowerCase();
-    return SUPPORTED_LANGUAGES.includes(browserLanguage) ? browserLanguage : 'en';
+    return resolveSystemLanguage(navigator.language);
+}
+
+export function resolveSystemLanguage(language) {
+    const systemLanguage = language?.slice(0, 2).toLowerCase();
+    return systemLanguage === 'uk' || systemLanguage === 'ru' ? systemLanguage : 'en';
 }
 
 function translateTree(root) {

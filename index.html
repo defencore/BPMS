@@ -31,6 +31,7 @@
     <link href="./styles/layout.css" rel="stylesheet">
     <link href="./styles/settings.css" rel="stylesheet">
     <link href="./styles/policy-and-research.css" rel="stylesheet">
+    <link href="./styles/mobile.css" rel="stylesheet">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
@@ -51,13 +52,16 @@
         </div>
     </nav>
 
-    <div class="container mt-3">
+    <div class="container mt-3 app-shell">
         <div id="alerts-container"></div>
 
         <div id="critical-warning" class="critical-warning" style="display: none;">
             <div class="critical-warning-header">
                 <i class="fas fa-exclamation-triangle"></i>
                 <span>Warning! Critical readings</span>
+                <button id="btn-dismiss-critical-warning" class="critical-warning-dismiss" type="button" aria-label="Close">
+                    <i class="fas fa-xmark" aria-hidden="true"></i>
+                </button>
             </div>
             <div id="critical-warning-content"></div>
         </div>
@@ -90,7 +94,7 @@
         <div class="tab-content" id="mainTabsContent">
             <!-- Monitoring Tab -->
             <div class="tab-pane fade show active" id="monitoring" role="tabpanel" aria-labelledby="monitoring-tab">
-                <div class="row mb-3">
+                <div class="row mb-3 monitoring-connection-row">
                     <div class="col-12">
                         <div class="card connection-card" data-section="connection">
                             <div class="card-body">
@@ -101,7 +105,7 @@
                                                 <i class="fas fa-gamepad me-2"></i>Device controls
                                             </h6>
                                             <div class="active-connector mb-3">
-                                                <i class="fas fa-plug me-2"></i><span id="active-connector-label">Hingmed USB / UART</span>
+                                                <i class="fas fa-plug me-2"></i><span id="active-connector-label">Manual entry</span>
                                             </div>
                                             <div id="connector-transport-actions" class="row g-3 mb-3 control-primary-grid">
                                                 <div class="col-6">
@@ -184,7 +188,7 @@
                                                         <i class="fas fa-user"></i>
                                                     </div>
                                                     <div class="info-content">
-                                                        <small class="text-muted">User</small>
+                                                        <small class="text-muted">Patient name</small>
                                                         <div id="device-username-inline" class="fw-bold">--</div>
                                                     </div>
                                                 </div>
@@ -257,7 +261,7 @@
                     </div>
                 </div>
 
-                <div class="row mb-4">
+                <div class="row mb-4 monitoring-stats-row">
                     <div class="col-12">
                         <div class="card" data-section="stats">
                             <div class="card-header">
@@ -339,7 +343,7 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <div class="chart-container">
+                                        <div class="chart-container chart-container-primary">
                                             <canvas id="combined-chart"></canvas>
                                         </div>
                                     </div>
@@ -353,7 +357,7 @@
 
                                         <div class="row g-4 align-items-stretch mb-4">
                                             <div class="col-lg-4">
-                                                <div class="chart-container h-100" style="min-height: 260px;">
+                                                <div class="chart-container chart-container-donut h-100" style="min-height: 260px;">
                                                     <canvas id="esc-distribution-chart"></canvas>
                                                 </div>
                                             </div>
@@ -375,19 +379,19 @@
                                         <div class="row">
                                             <div class="col-md-4">
                                                 <h6 class="text-center mb-3">Systolic pressure</h6>
-                                                <div class="chart-container" style="height: 300px;">
+                                                <div class="chart-container chart-container-small" style="height: 300px;">
                                                     <canvas id="systolic-histogram"></canvas>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <h6 class="text-center mb-3">Diastolic pressure</h6>
-                                                <div class="chart-container" style="height: 300px;">
+                                                <div class="chart-container chart-container-small" style="height: 300px;">
                                                     <canvas id="diastolic-histogram"></canvas>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <h6 class="text-center mb-3">Pulse</h6>
-                                                <div class="chart-container" style="height: 300px;">
+                                                <div class="chart-container chart-container-small" style="height: 300px;">
                                                     <canvas id="pulse-histogram"></canvas>
                                                 </div>
                                             </div>
@@ -399,7 +403,7 @@
                     </div>
                 </div>
 
-                <div class="card" data-section="table">
+                <div class="card monitoring-history-card" data-section="table">
                     <div class="card-header">
                         <i class="fas fa-table text-primary me-2"></i> Measurement history
                     </div>
@@ -408,7 +412,7 @@
                         <div class="table-responsive">
                             <table class="table">
                                 <thead>
-                                    <tr>
+                                    <tr class="history-empty-row">
                                         <th>#</th>
                                         <th>Date/Time</th>
                                         <th>Systolic</th>
@@ -481,7 +485,7 @@
                                 <i class="fas fa-chart-line text-primary me-2"></i> Monthly pressure trend
                             </div>
                             <div class="card-body">
-                                <div class="chart-container" style="height: 400px; position: relative;">
+                                <div class="chart-container chart-container-primary" style="height: 400px; position: relative;">
                                     <canvas id="monthly-pressure-chart"></canvas>
                                 </div>
                             </div>
@@ -494,7 +498,7 @@
                                 <small class="text-muted ms-2">(click a day in the calendar)</small>
                             </div>
                             <div class="card-body">
-                                <div class="chart-container" style="height: 400px; position: relative;">
+                                <div class="chart-container chart-container-primary" style="height: 400px; position: relative;">
                                     <canvas id="daily-profile-chart"></canvas>
                                 </div>
                             </div>
@@ -1140,7 +1144,8 @@
 <div class="row mb-3">
     <div class="col-6">
         <label class="form-label" for="max-cuff-pressure">Maximum cuff pressure, mmHg</label>
-        <input type="number" class="form-control" id="max-cuff-pressure" value="280" min="140" max="300" step="10">
+        <input type="number" class="form-control" id="max-cuff-pressure" value="280" disabled aria-describedby="max-cuff-pressure-help">
+        <small id="max-cuff-pressure-help" class="text-muted">Fixed by the verified WBP-02A programming profile.</small>
     </div>
     <div class="col-6 d-flex align-items-end">
         <div class="form-check mb-2">
@@ -1345,23 +1350,18 @@
                     <div class="col-12">
                         <div class="card">
                             <button type="button" class="card-header settings-collapse-toggle" data-bs-toggle="collapse" data-bs-target="#user-settings-collapse" aria-expanded="false" aria-controls="user-settings-collapse">
-                                <i class="fas fa-user-cog text-primary me-2"></i> User settings
+                                <i class="fas fa-user-cog text-primary me-2"></i> Session settings
                                 <i class="fas fa-chevron-down"></i>
                             </button>
                             <div id="user-settings-collapse" class="collapse">
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h6><i class="fas fa-user me-2"></i>User information</h6>
+                                            <h6><i class="fas fa-user me-2"></i>Session information</h6>
                                             <div class="mb-3">
-                                                <label for="user-name-input" class="form-label">User name</label>
-                                                <input type="text" class="form-control" id="user-name-input" maxlength="32" placeholder="Enter a name (up to 32 characters)">
-                                                <small class="text-muted">Maximum 32 characters</small>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="user-id-input" class="form-label">User ID</label>
-                                                <input type="text" class="form-control" id="user-id-input" maxlength="16" placeholder="Enter an ID (up to 16 characters)">
-                                                <small class="text-muted">Maximum 16 characters</small>
+                                                <label for="user-id-input" class="form-label">Session / patient ID</label>
+                                                <input type="number" class="form-control" id="user-id-input" value="1" min="0" max="2147483647" step="1" inputmode="numeric">
+                                                <small class="text-muted">Numeric session or patient ID (0–2147483647)</small>
                                             </div>
                                             <div class="settings-actions">
                                                 <button id="btn-set-user-info" class="btn btn-primary" disabled>
@@ -1380,23 +1380,21 @@
                                             </div>
                                             <div id="hingmed-menu-help" class="alert alert-warning d-none mt-3 mb-0" role="note">
                                                 <i class="fas fa-triangle-exclamation me-1"></i>
-                                                Enter the device menu manually, then retry saving or reading the user data. The entry method depends on the Hingmed model and firmware version.
+                                                Enter the device menu manually, then retry saving or reading the session ID. The entry method depends on the Hingmed model and firmware version.
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="alert alert-info">
-                                                <i class="fas fa-info-circle"></i> <strong>User settings</strong>
-                                                <p class="mb-2 mt-2">These settings are stored in device memory and identify measurements.</p>
+                                                <i class="fas fa-info-circle"></i> <strong>Session identification</strong>
+                                                <p class="mb-2 mt-2">The verified WBP-02A USB protocol stores one numeric session or patient ID with the measurements.</p>
                                                 <ul class="mb-0">
-                                                    <li>Set the user name and ID first</li>
-                                                    <li>You can then read them from the device</li>
-                                                    <li>Data remains on the device after disconnecting</li>
+                                                    <li>The value is encoded as a 32-bit little-endian integer</li>
+                                                    <li>BPMS reads it from the device after connection</li>
+                                                    <li>Applying a device profile writes the displayed value back</li>
                                                 </ul>
                                                 <hr class="my-2">
                                                 <small class="text-muted">
-                                                    Command examples:<br>
-                                                    • Name “WSD”: 5A 08 41 57 53 44 6A 71<br>
-                                                    • ID "112566": 5A 0B 42 31 31 32 35 36 36 4A 8C
+                                                    Verified commands: <code>0x42</code> writes the numeric ID; <code>0x56</code> reads it.
                                                 </small>
                                             </div>
                                         </div>

@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateCRC16, decodeMeasurementPacket, encodeMeasurementPacket, formatHex, parseHexString } from '../src/core/protocol.js';
+import { calculateCRC16, formatHex, parseHexString } from '../src/core/protocol.js';
+import {
+    decodeMeasurementPacket,
+    decodeMeasurementStatus,
+    encodeMeasurementPacket
+} from '../src/infrastructure/hingmed/serial-codec.js';
 
 const measurement = {
     systolic: 123,
@@ -10,6 +15,7 @@ const measurement = {
     errorCode: 0,
     bodyPosition: 'lying',
     measurementMethod: 'manual',
+    measurementEvent: 'manual',
     hasMovement: true
 };
 
@@ -34,4 +40,37 @@ test('measurement packet encoding and decoding round-trip', () => {
 test('device protocol maps separate manual postures to its combined posture flag', () => {
     const packet = encodeMeasurementPacket({ ...measurement, bodyPosition: 'standing' });
     assert.equal(decodeMeasurementPacket(packet).bodyPosition, 'sitting-standing');
+});
+
+test('hardware record vector decodes 16-bit values and separate status nibbles', () => {
+    const packet = parseHexString('5A 12 54 00 8D 00 40 00 43 19 05 18 03 38 00 21 A9 83');
+    const decoded = decodeMeasurementPacket(packet, 292);
+    assert.deepEqual(decoded, {
+        index: 292,
+        systolic: 141,
+        diastolic: 64,
+        pulse: 67,
+        datetime: '2025-05-24 03:56',
+        errorCode: 0,
+        error: 'none',
+        bodyPosition: 'lying',
+        measurementMethod: 'manual',
+        measurementEvent: 'manual',
+        hasMovement: true
+    });
+    assert.deepEqual(decodeMeasurementStatus(0x10), {
+        raw: 0x10,
+        positionCode: 1,
+        bodyPosition: 'sitting-standing',
+        eventCode: 0,
+        event: 'automatic'
+    });
+});
+
+test('record decoder rejects malformed frames and removes impossible vital values', () => {
+    const badCrc = encodeMeasurementPacket(measurement);
+    badCrc[4] ^= 1;
+    assert.throws(() => decodeMeasurementPacket(badCrc), /Invalid serial frame/u);
+    const impossible = encodeMeasurementPacket({ ...measurement, systolic: 70, diastolic: 90 });
+    assert.equal(decodeMeasurementPacket(impossible), null);
 });

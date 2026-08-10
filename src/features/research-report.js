@@ -42,6 +42,9 @@ export async function createResearchReportDocument(model, PdfConstructor = windo
         title: t('report.title'),
         subtitle: t('report.subtitle'),
         notice: t('report.notice'),
+        patient: model.deviceInfo.username
+            ? { label: t('report.patient-name'), value: model.deviceInfo.username }
+            : null,
         range: { label: t('report.range'), value: formatReportRange(model.range) },
         generated: { label: t('report.generated'), value: formatDate(new Date(), { dateStyle: 'medium', timeStyle: 'short' }) },
         site: { label: t('report.website'), value: PUBLIC_APP_URL, url: PUBLIC_APP_URL }

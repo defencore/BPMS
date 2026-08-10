@@ -277,3 +277,186 @@
     font-size: 0.875rem;
     color: var(--text-muted);
 }
+
+.analytics-clinical-details {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 1rem;
+}
+
+.analytics-detail-block,
+.analytics-details-disclosure {
+    background: #f8fafc;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.analytics-detail-block > header,
+.analytics-details-disclosure > summary {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.75rem 0.85rem 0.6rem;
+}
+
+.analytics-detail-block > header span,
+.analytics-details-disclosure > summary span {
+    align-items: center;
+    display: flex;
+    font-size: 0.82rem;
+    font-weight: 700;
+    gap: 0.45rem;
+}
+
+.analytics-detail-block > header i,
+.analytics-details-disclosure > summary i {
+    color: var(--primary-color);
+}
+
+.analytics-detail-block > header small,
+.analytics-details-disclosure > summary small {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    line-height: 1.35;
+}
+
+.analytics-details-disclosure {
+    grid-column: 1 / -1;
+}
+
+.analytics-details-disclosure > summary {
+    cursor: pointer;
+    list-style-position: inside;
+}
+
+.analytics-data-table {
+    font-size: 0.72rem;
+    margin: 0;
+    min-width: 520px;
+}
+
+.analytics-data-table > :not(caption) > * > * {
+    background: transparent;
+    padding: 0.42rem 0.5rem;
+    vertical-align: middle;
+}
+
+.analytics-data-table thead th {
+    color: var(--text-muted);
+    font-size: 0.64rem;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+}
+
+.analytics-extremes-table {
+    min-width: 420px;
+}
+
+.analytics-extremes-table td strong,
+.analytics-extremes-table td small {
+    display: block;
+}
+
+.analytics-extremes-table td small {
+    color: var(--text-muted);
+    font-size: 0.63rem;
+    margin-top: 0.12rem;
+}
+
+.analytics-correlation-warning {
+    align-items: flex-start;
+    color: var(--text-muted);
+    display: flex;
+    font-size: 0.68rem;
+    gap: 0.4rem;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0.65rem 0.8rem 0.8rem;
+}
+
+@media (max-width: 767.98px) {
+    .analytics-clinical-details {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-detail-block > header,
+    .analytics-details-disclosure > summary {
+        padding: 0.65rem 0.7rem 0.5rem;
+    }
+
+    .analytics-clinical-details .table-responsive {
+        overflow: visible;
+    }
+
+    .analytics-data-table,
+    .analytics-data-table tbody {
+        display: block;
+        font-size: 0.7rem;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .analytics-data-table thead {
+        display: none;
+    }
+
+    .analytics-data-table tbody {
+        display: grid;
+        gap: 0.5rem;
+        padding: 0 0.6rem 0.65rem;
+    }
+
+    .analytics-data-table tbody tr {
+        background: #fff;
+        border: 1px solid #dbe4f0;
+        border-radius: 9px;
+        display: grid;
+        gap: 0.5rem 0.7rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        overflow: hidden;
+        padding: 0.6rem;
+        width: 100%;
+    }
+
+    .analytics-data-table tbody th,
+    .analytics-data-table tbody td {
+        border: 0;
+        display: block;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        padding: 0;
+        width: 100%;
+    }
+
+    .analytics-data-table tbody th {
+        color: #1e293b;
+        font-size: 0.74rem;
+        grid-column: 1 / -1;
+    }
+
+    .analytics-data-table tbody td {
+        font-size: 0.7rem;
+        line-height: 1.25;
+    }
+
+    .analytics-data-table tbody td::before {
+        color: var(--text-muted);
+        content: attr(data-label);
+        display: block;
+        font-size: 0.54rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 0.12rem;
+        text-transform: uppercase;
+    }
+
+    .analytics-extremes-table td strong,
+    .analytics-extremes-table td small {
+        overflow-wrap: normal;
+        word-break: normal;
+    }
+}

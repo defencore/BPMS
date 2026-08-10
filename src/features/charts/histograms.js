@@ -1,5 +1,6 @@
 import { state } from '../../core/state.js';
 import { t } from '../../i18n/i18n.js';
+import { isCompactChartViewport, responsiveAxisTitle, responsiveTicks, responsiveTooltip } from './responsive-options.js';
 
 export function createHistogramData(values, binSize, min, max) {
     const bins = [];
@@ -42,6 +43,31 @@ export function initHistograms() {
         state.charts.pulseHistogram = null;
     }
 
+    const compact = isCompactChartViewport();
+    const chartOptions = (unit, max) => ({
+        animation: { duration: compact ? 0 : 400 },
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: responsiveTooltip({
+                label: context => `${context.parsed.y.toFixed(1)}%`
+            })
+        },
+        responsive: true,
+        scales: {
+            x: {
+                ticks: responsiveTicks(undefined, { maxTicks: 5 }),
+                title: responsiveAxisTitle(t(unit))
+            },
+            y: {
+                beginAtZero: true,
+                max,
+                ticks: responsiveTicks(value => `${value}%`, { maxTicks: 4 }),
+                title: responsiveAxisTitle(t('Frequency (%)'))
+            }
+        }
+    });
+
     const systolicCtx = systolicCanvas.getContext('2d');
     state.charts.systolicHistogram = new Chart(systolicCtx, {
         type: 'bar',
@@ -55,43 +81,7 @@ export function initHistograms() {
                 borderWidth: 2
             }]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.parsed.y.toFixed(1)}%`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 60,
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: t('Frequency (%)')
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: t('mmHg')
-                    }
-                }
-            }
-        }
+        options: chartOptions('mmHg', 60)
     });
 
     const diastolicCtx = diastolicCanvas.getContext('2d');
@@ -107,43 +97,7 @@ export function initHistograms() {
                 borderWidth: 2
             }]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.parsed.y.toFixed(1)}%`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 60,
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: t('Frequency (%)')
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: t('mmHg')
-                    }
-                }
-            }
-        }
+        options: chartOptions('mmHg', 60)
     });
 
     const pulseCtx = pulseCanvas.getContext('2d');
@@ -159,43 +113,7 @@ export function initHistograms() {
                 borderWidth: 2
             }]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.parsed.y.toFixed(1)}%`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 80,
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: t('Frequency (%)')
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: t('bpm')
-                    }
-                }
-            }
-        }
+        options: chartOptions('bpm', 80)
     });
 }
 
