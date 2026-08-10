@@ -1,0 +1,39 @@
+{
+  "schema": "bpms",
+  "version": 2,
+  "exportedAt": "2026-08-10T00:00:00.000Z",
+  "device": {
+    "id": "WBP-02A",
+    "numRecords": 2,
+    "username": "Test User",
+    "userId": "TEST-1",
+    "serialNumber": "SN-TEST",
+    "macAddress": "00:11:22:33:44:55"
+  },
+  "measurements": [
+    {
+      "systolic": 118,
+      "diastolic": 72,
+      "pulse": 61,
+      "datetime": "2026-08-09 08:30",
+      "errorCode": 0,
+      "error": "none",
+      "bodyPosition": "lying",
+      "measurementMethod": "automatic",
+      "hasMovement": false
+    },
+    {
+      "systolic": 142,
+      "diastolic": 92,
+      "pulse": 78,
+      "datetime": "2026-08-10 18:45",
+      "errorCode": 0,
+      "error": "none",
+      "bodyPosition": "sitting-standing",
+      "measurementMethod": "automatic",
+      "hasMovement": false
+    }
+  ],
+  "events": [],
+  "sources": []
+}

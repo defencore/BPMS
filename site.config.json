@@ -1,0 +1,23 @@
+{
+  "siteUrl": "https://bpms.global.agency/",
+  "title": "BPMS — Blood Pressure Monitoring System",
+  "description": "Browser-based ABPM and blood pressure monitoring data explorer for reviewing BP, pulse, circadian patterns, variability, and research-oriented comparisons.",
+  "keywords": [
+    "ABPM",
+    "ambulatory blood pressure monitoring",
+    "BPMS",
+    "BPM",
+    "blood pressure",
+    "blood pressure monitoring",
+    "24-hour blood pressure",
+    "systolic pressure",
+    "diastolic pressure",
+    "pulse monitoring",
+    "circadian blood pressure",
+    "blood pressure variability",
+    "Hingmed"
+  ],
+  "socialImage": "assets/social-preview-v8.png",
+  "googleAnalyticsId": "",
+  "googleSiteVerification": ""
+}

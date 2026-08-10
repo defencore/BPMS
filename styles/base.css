@@ -1,0 +1,228 @@
+:root {
+    --primary-color: #6366f1;
+    --secondary-color: #3b82f6;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #06b6d4;
+    --bg-color: #f1f5f9;
+    --card-bg: #ffffff;
+    --text-color: #1e293b;
+    --text-muted: #64748b;
+    --border-radius: 16px;
+    --box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --box-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* Collapsible headers */
+.card-header[data-bs-toggle="collapse"] {
+    transition: background-color 0.2s ease;
+}
+
+.card-header[data-bs-toggle="collapse"]:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.card-header[data-bs-toggle="collapse"] .fa-chevron-down {
+    transition: transform 0.3s ease;
+}
+
+/* Hint for WiFi test values */
+#device-serial-inline:hover,
+#device-mac-inline:hover {
+    cursor: help;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+}
+
+/* Chart interaction styles */
+#combined-chart {
+    cursor: grab;
+}
+
+#combined-chart:active {
+    cursor: grabbing;
+}
+
+/* Connection Card Styles */
+.connection-card {
+    border: none;
+    box-shadow: var(--box-shadow-lg);
+    overflow: hidden;
+}
+
+.connection-card .card-body {
+    padding: 1.5rem;
+}
+
+
+/* Button Grid Styles */
+.button-grid {
+    width: 100%;
+}
+
+.button-grid .btn {
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.button-grid .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.button-grid .btn-lg {
+    padding: 0.75rem 1.5rem;
+}
+
+.button-grid .btn i {
+    font-size: 1.1rem;
+}
+
+.button-grid .badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Section Styles */
+.control-section,
+.device-info-section {
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    height: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid rgba(99, 102, 241, 0.1);
+}
+
+.section-title i {
+    color: var(--primary-color);
+}
+
+.control-section hr,
+.device-info-section hr {
+    border: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    margin: 1.25rem 0;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 0.75rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    min-height: 60px;
+}
+
+.info-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow);
+}
+
+.info-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--bg-color);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+.info-icon i {
+    color: var(--primary-color);
+    font-size: 0.9rem;
+}
+
+.info-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.info-content small {
+    font-size: 0.7rem;
+    display: block;
+    margin-bottom: 0.1rem;
+    opacity: 0.7;
+}
+
+.info-content > div {
+    overflow-wrap: anywhere;
+    white-space: normal;
+    font-size: 0.9rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .control-section,
+    .device-info-section {
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+    .info-grid {
+        gap: 0.5rem;
+    }
+
+    .info-item {
+        padding: 0.4rem;
+    }
+
+    .info-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .info-content small {
+        font-size: 0.65rem;
+    }
+
+    .info-content > div {
+        font-size: 0.85rem;
+    }
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.language-control {
+    align-items: center;
+    color: #fff;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.language-control .form-select {
+    min-width: 8rem;
+}

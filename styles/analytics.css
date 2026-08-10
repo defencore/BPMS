@@ -1,0 +1,279 @@
+/* Analytics Styles */
+.patterns-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.pattern-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-color);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.pattern-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow);
+}
+
+.pattern-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 24px;
+}
+
+.pattern-icon.good {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.pattern-icon.warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.pattern-icon.danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.pattern-content h6 {
+    margin: 0 0 0.25rem 0;
+    color: var(--text-color);
+}
+
+.pattern-content p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* Calendar Heatmap Styles */
+.calendar-heatmap {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.calendar-header {
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.calendar-day-header {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 0.5rem 0;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.calendar-cell {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    min-height: 80px;
+}
+
+.calendar-cell:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10;
+}
+
+.calendar-cell.empty {
+    visibility: hidden;
+}
+
+.calendar-cell.no-data {
+    background: #f8f9fa;
+    color: #adb5bd;
+}
+
+.calendar-cell.optimal {
+    background: #d4edda;
+    color: #155724;
+}
+
+.calendar-cell.normal {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.calendar-cell.elevated {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.calendar-cell.high {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.calendar-cell.today {
+    border: 2px solid var(--primary-color);
+}
+
+.calendar-cell.active {
+    border: 2px solid var(--secondary-color);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    transform: scale(1.05);
+}
+
+.cell-day {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.cell-value {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.cell-count {
+    font-size: 0.625rem;
+    opacity: 0.8;
+}
+
+.calendar-legend {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+.legend-color.optimal {
+    background: #d4edda;
+}
+
+.legend-color.normal {
+    background: #d1ecf1;
+}
+
+.legend-color.elevated {
+    background: #fff3cd;
+}
+
+.legend-color.high {
+    background: #f8d7da;
+}
+
+/* Responsive calendar */
+@media (max-width: 768px) {
+    .calendar-cell {
+        min-height: 60px;
+        padding: 0.25rem;
+    }
+
+    .cell-day {
+        font-size: 0.75rem;
+    }
+
+    .cell-value {
+        font-size: 0.625rem;
+    }
+
+    .cell-count {
+        font-size: 0.5rem;
+    }
+
+    .calendar-legend {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+}
+
+/* Risk Zones */
+.risk-zones-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.risk-card {
+    background: var(--bg-color);
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.risk-card.optimal {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.05);
+}
+
+.risk-card.normal {
+    border-color: #17a2b8;
+    background: rgba(23, 162, 184, 0.05);
+}
+
+.risk-card.warning {
+    border-color: #ffc107;
+    background: rgba(255, 193, 7, 0.05);
+}
+
+.risk-card.danger {
+    border-color: #dc3545;
+    background: rgba(220, 53, 69, 0.05);
+}
+
+.risk-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.risk-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}

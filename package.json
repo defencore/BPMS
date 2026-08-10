@@ -1,0 +1,18 @@
+{
+  "name": "bpms",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser-based blood pressure monitoring and analytics",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check-project.mjs",
+    "check:dist": "node scripts/check-dist.mjs",
+    "fonts": "node scripts/generate-font-module.mjs",
+    "test": "node --test",
+    "verify": "npm run check && npm test && npm run build && npm run check:dist"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
