@@ -149,7 +149,8 @@ function formatClock(value) {
 }
 
 function updateDeviceInfo(changes) {
-    persistDeviceInfo(Object.fromEntries(Object.entries(changes).filter(([, value]) => value != null)));
+    persistDeviceInfo(Object.fromEntries(Object.entries(changes)
+        .filter(([key, value]) => key === 'username' || value != null)));
     refreshDashboard();
 }
 

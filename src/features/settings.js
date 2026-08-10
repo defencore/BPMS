@@ -53,6 +53,8 @@ function saveSessionMetadata(event) {
     const manualPatientInput = event.currentTarget.closest('#application-settings')
         ?.querySelector('[data-manual-device-field="username"]');
     if (manualPatientInput) manualPatientInput.value = username ?? '';
+    const deviceSessionPatientInput = document.getElementById('patient-name-input');
+    if (deviceSessionPatientInput) deviceSessionPatientInput.value = username ?? '';
     refreshDashboard();
     showAlert(t('settings.session.saved'), 'success');
 }

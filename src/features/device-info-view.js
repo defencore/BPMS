@@ -3,6 +3,7 @@ import { state } from '../core/state.js';
 export function renderDeviceInfo() {
     setText('device-username-inline', state.deviceInfo.username);
     setInputValue('session-patient-name', state.deviceInfo.username);
+    setInputValue('patient-name-input', state.deviceInfo.username);
     setText('device-userid-inline', state.deviceInfo.userId);
     setText('device-records-inline', state.deviceInfo.numRecords || null);
     setText('loaded-records-inline', state.measurements.length);

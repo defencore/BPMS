@@ -1,12 +1,20 @@
 import { t } from '../../i18n/i18n.js';
+import { normalizePatientName } from '../../core/session-metadata.js';
 import { showAlert } from '../../ui/alerts.js';
 import { addToTerminal } from '../../ui/terminal.js';
 import { blockIfDeviceBusy, runDeviceOperation } from './operation.js';
 
 export function initUserSettings(client, onDeviceInfoChanged) {
+    document.getElementById('btn-save-patient-name')?.addEventListener('click', () => savePatientName(onDeviceInfoChanged));
     document.getElementById('btn-set-user-info')?.addEventListener('click', () => save(client, onDeviceInfoChanged));
     document.getElementById('btn-get-user-info')?.addEventListener('click', () => load(client, onDeviceInfoChanged));
     document.getElementById('btn-enter-menu')?.addEventListener('click', showMenuInstructions);
+}
+
+function savePatientName(onDeviceInfoChanged) {
+    const username = normalizePatientName(value('patient-name-input'));
+    onDeviceInfoChanged({ username });
+    showAlert(t('hingmed.patient-name-saved'), 'success');
 }
 
 async function save(client, onDeviceInfoChanged) {
