@@ -368,10 +368,144 @@
 
 .classification-summary {
     background: linear-gradient(135deg, #f8fafc 0%, white 100%);
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 1.5rem;
-    margin: 1rem 0;
+    padding: 1rem;
+    margin: 0;
     height: 100%;
+}
+
+.esc-distribution-overview {
+    align-items: stretch;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(230px, 0.72fr) repeat(2, minmax(0, 1.14fr));
+}
+
+.esc-distribution-overview > * {
+    min-width: 0;
+}
+
+.esc-distribution-chart-panel {
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0.75rem;
+}
+
+.esc-distribution-overview .chart-container-donut {
+    background: transparent;
+    height: 180px;
+    max-width: 240px;
+    padding: 0.25rem;
+}
+
+.esc-distribution-legend {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.55rem;
+    width: 100%;
+}
+
+.esc-distribution-legend:empty {
+    display: none;
+}
+
+.esc-distribution-legend span {
+    align-items: center;
+    display: grid;
+    font-size: 0.69rem;
+    gap: 0.4rem;
+    grid-template-columns: 0.65rem minmax(0, 1fr) auto;
+    min-width: 0;
+}
+
+.esc-distribution-legend i {
+    background: var(--legend-color);
+    border-radius: 50%;
+    height: 0.55rem;
+    width: 0.55rem;
+}
+
+.esc-distribution-legend b {
+    font-weight: 600;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.esc-distribution-legend small {
+    color: var(--text-muted);
+    font-size: 0.65rem;
+}
+
+.classification-summary-table {
+    font-size: 0.72rem;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.classification-summary-table thead th,
+.classification-summary-table tbody td {
+    overflow-wrap: anywhere;
+    padding: 0.55rem 0.45rem;
+    white-space: normal;
+}
+
+.classification-summary-table thead th {
+    font-size: 0.61rem;
+    letter-spacing: 0.025em;
+}
+
+.classification-summary-table th:nth-child(1),
+.classification-summary-table td:nth-child(1) {
+    width: 22%;
+}
+
+.classification-summary-table th:nth-child(2),
+.classification-summary-table td:nth-child(2) {
+    width: 29%;
+}
+
+.classification-summary-table th:nth-child(3),
+.classification-summary-table td:nth-child(3) {
+    width: 49%;
+}
+
+.classification-summary-table small {
+    display: block;
+    line-height: 1.4;
+}
+
+.classification-summary-table .bp-classification {
+    margin-left: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    padding: 0.25rem 0.45rem;
+    white-space: normal;
+}
+
+@media (max-width: 1199.98px) {
+    .esc-distribution-overview {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .esc-distribution-chart-panel {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .esc-distribution-overview {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .esc-distribution-chart-panel {
+        grid-column: auto;
+    }
 }
 
 .classification-item {

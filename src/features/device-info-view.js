@@ -3,7 +3,7 @@ import { state } from '../core/state.js';
 export function renderDeviceInfo() {
     setText('device-username-inline', state.deviceInfo.username);
     setInputValue('session-patient-name', state.deviceInfo.username);
-    setInputValue('patient-name-input', state.deviceInfo.username);
+    setInputValue('session-user-id', state.deviceInfo.userId);
     setText('device-userid-inline', state.deviceInfo.userId);
     setText('device-records-inline', state.deviceInfo.numRecords || null);
     setText('loaded-records-inline', state.measurements.length);
@@ -27,8 +27,8 @@ export function setHingmedControlsEnabled(enabled) {
         'btn-configure-wifi',
         'btn-test-wifi',
         'btn-reset-wifi',
-        'btn-set-user-info',
-        'btn-get-user-info'
+        'btn-session-save-device',
+        'btn-session-read-device'
     ]) {
         const element = document.getElementById(id);
         if (element) element.disabled = !enabled;

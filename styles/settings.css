@@ -572,6 +572,19 @@
     gap: 0.75rem;
 }
 
+.settings-field-grid.session-identity-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.session-primary-actions {
+    background: transparent;
+    border: 0;
+    border-top: 1px solid #e2e8f0;
+    border-radius: 0;
+    margin-top: 0.85rem;
+    padding: 0.85rem 0 0;
+}
+
 .settings-group-heading h6 {
     font-size: 0.925rem;
     font-weight: 700;
@@ -790,7 +803,7 @@
 .settings-connector-layout {
     display: grid;
     gap: 1rem;
-    grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.75fr);
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .settings-connector-picker {
@@ -821,6 +834,71 @@
 
 .connector-config[hidden] {
     display: none !important;
+}
+
+.connector-quick-actions {
+    display: grid;
+    gap: 0.6rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 1rem;
+}
+
+.connector-quick-actions .btn {
+    font-size: 0.8rem;
+    min-height: 2.75rem;
+    padding-inline: 0.55rem;
+    white-space: normal;
+}
+
+.hingmed-tools-slot:empty {
+    display: none;
+}
+
+.hingmed-tools-stack {
+    border-top: 1px solid #e2e8f0;
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.hingmed-tools-stack[hidden] {
+    display: none !important;
+}
+
+.hingmed-tools-stack > .row {
+    margin: 0;
+}
+
+.hingmed-tools-stack > .row > .col-12 {
+    padding: 0;
+}
+
+.hingmed-tools-stack .card {
+    border-color: #dbe4f0;
+    border-radius: 10px;
+    box-shadow: none;
+    margin: 0;
+    overflow: hidden;
+}
+
+.hingmed-tools-stack .card-header {
+    min-height: 3rem;
+    padding: 0.75rem 0.85rem;
+}
+
+.hingmed-tools-stack .card-body {
+    border-top: 1px solid #e2e8f0;
+    padding: 0.9rem;
+}
+
+.hingmed-tools-stack #terminal {
+    max-height: 16rem;
+    min-height: 9rem;
+}
+
+.session-device-sync {
+    margin-top: 1rem;
 }
 
 .manual-device-group {
@@ -878,6 +956,14 @@
     .settings-field-grid,
     .settings-field-grid-context,
     .settings-connector-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-field-grid.session-identity-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .connector-quick-actions {
         grid-template-columns: 1fr;
     }
 

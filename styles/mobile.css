@@ -300,6 +300,12 @@
         text-align: center;
     }
 
+    .manual-vital-field .form-control::placeholder {
+        color: #94a3b8;
+        font-weight: 600;
+        opacity: 0.75;
+    }
+
     .manual-entry-card input,
     .manual-entry-card select,
     .manual-entry-card textarea {
@@ -905,6 +911,10 @@
     .manual-device-grid {
         gap: 0.55rem;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .settings-field-grid.session-identity-grid {
+        grid-template-columns: 1fr;
     }
 
     .settings-field .form-control,

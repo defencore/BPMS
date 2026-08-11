@@ -6,6 +6,7 @@ import {
     formatCombinedXAxisLabel,
     selectCombinedChartMeasurements
 } from '../src/features/charts/combined-data.js';
+import { calculateZoomMinRange } from '../src/features/charts/zoom-limits.js';
 
 test('24-hour chart view excludes stale readings while all-data view retains them', () => {
     const now = new Date('2026-08-10T12:00:00Z');
@@ -36,6 +37,14 @@ test('x-axis formatter accepts date strings and numeric zoom ticks', () => {
     assert.equal(formatCombinedXAxisLabel('2026-08-10 12:30'), '12:30');
     assert.equal(formatCombinedXAxisLabel(42), '42');
     assert.equal(formatCombinedXAxisLabel(null), '');
+});
+
+test('chart zoom keeps multiple readings visible at the closest range', () => {
+    assert.equal(calculateZoomMinRange(0), 0);
+    assert.equal(calculateZoomMinRange(1), 0);
+    assert.equal(calculateZoomMinRange(2), 1);
+    assert.equal(calculateZoomMinRange(20), 2);
+    assert.equal(calculateZoomMinRange(137), 7);
 });
 
 function reading(datetime, systolic, diastolic, pulse) {

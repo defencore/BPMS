@@ -1,5 +1,11 @@
 import { createDefaultSettings, clearLocalApplicationData, getSettings, updateSettings } from '../core/settings-store.js';
-import { getActiveConnector, listConnectors, selectConnector } from '../connectors/controller.js';
+import {
+    connectActive,
+    disconnectActive,
+    getActiveConnector,
+    listConnectors,
+    selectConnector
+} from '../connectors/controller.js';
 import { t } from '../i18n/i18n.js';
 import { showAlert } from '../ui/alerts.js';
 import { renderSettingsView } from './settings-view.js';
@@ -8,6 +14,7 @@ import { openUsagePolicy } from './usage-policy.js';
 import { normalizeManualDeviceInfo } from '../core/manual-device-info.js';
 import { normalizePatientName } from '../core/session-metadata.js';
 import { state, updateDeviceInfo } from '../core/state.js';
+import { loadHingmedSessionInfo, saveHingmedSessionInfo } from './hingmed/controller.js';
 
 let refreshDashboard = () => {};
 
@@ -20,11 +27,13 @@ export function initSettings(onDataChanged) {
 function render() {
     const container = document.getElementById('application-settings');
     if (!container) return;
+    parkHingmedTools(container);
     const activeSettingsTab = getActiveTabTarget('.settings-nav', '#settings-connectors');
     renderSettingsView(container, listConnectors(), activeSettingsTab, getSettings(), state.deviceInfo);
     bindEvents(container);
     populateSettings(container);
     renderConnectorPanel();
+    window.dispatchEvent(new CustomEvent('bpms:settingsrendered'));
 }
 
 function bindEvents(container) {
@@ -41,6 +50,12 @@ function bindEvents(container) {
     container.querySelector('#session-metadata-form')?.addEventListener('submit', saveSessionMetadata);
     container.querySelector('#manual-device-form')?.addEventListener('submit', saveManualDeviceInfo);
     container.querySelector('#btn-open-manual-entry')?.addEventListener('click', () => activateTabTarget('#monitoring'));
+    container.querySelector('#btn-settings-open-monitoring')?.addEventListener('click', () => activateTabTarget('#monitoring'));
+    container.querySelector('#btn-settings-hingmed-connect')?.addEventListener('click', connectActive);
+    container.querySelector('#btn-settings-hingmed-disconnect')?.addEventListener('click', disconnectActive);
+    container.querySelector('#btn-session-save-device')?.addEventListener('click', saveSessionToDevice);
+    container.querySelector('#btn-session-read-device')?.addEventListener('click', loadSessionFromDevice);
+    container.querySelector('#btn-session-menu-help')?.addEventListener('click', toggleSessionDeviceHelp);
     container.querySelectorAll('[data-reset-settings]').forEach(button => button.addEventListener('click', resetSection));
     container.querySelector('#btn-clear-local-data')?.addEventListener('click', clearLocalData);
     container.querySelector('#btn-open-usage-policy')?.addEventListener('click', () => openUsagePolicy());
@@ -49,12 +64,8 @@ function bindEvents(container) {
 function saveSessionMetadata(event) {
     event.preventDefault();
     const username = normalizePatientName(event.currentTarget.querySelector('#session-patient-name')?.value ?? '');
-    updateDeviceInfo({ username, usernameSource: username ? 'local' : null });
-    const manualPatientInput = event.currentTarget.closest('#application-settings')
-        ?.querySelector('[data-manual-device-field="username"]');
-    if (manualPatientInput) manualPatientInput.value = username ?? '';
-    const deviceSessionPatientInput = document.getElementById('patient-name-input');
-    if (deviceSessionPatientInput) deviceSessionPatientInput.value = username ?? '';
+    const userId = event.currentTarget.querySelector('#session-user-id')?.value.trim() || null;
+    updateDeviceInfo({ username, usernameSource: username ? 'local' : null, userId });
     refreshDashboard();
     showAlert(t('settings.session.saved'), 'success');
 }
@@ -64,7 +75,13 @@ function saveManualDeviceInfo(event) {
     try {
         const values = Object.fromEntries([...event.currentTarget.querySelectorAll('[data-manual-device-field]')]
             .map(input => [input.dataset.manualDeviceField, input.value]));
-        updateDeviceInfo(normalizeManualDeviceInfo(values));
+        const normalized = normalizeManualDeviceInfo({ ...state.deviceInfo, ...values });
+        updateDeviceInfo({
+            ...normalized,
+            username: state.deviceInfo.username,
+            usernameSource: state.deviceInfo.usernameSource,
+            userId: state.deviceInfo.userId
+        });
         refreshDashboard();
         showAlert(t('settings.manual.device-saved'), 'success');
     } catch (error) {
@@ -167,6 +184,48 @@ function renderConnectorPanel() {
     document.querySelectorAll('[data-connector-panel]').forEach(panel => { panel.hidden = panel.dataset.connectorPanel !== active.id; });
     const description = document.getElementById('connector-description');
     if (description) description.textContent = t(active.descriptionKey);
+    document.querySelectorAll('[data-session-device-actions]').forEach(panel => {
+        panel.hidden = active.id !== 'hingmed';
+    });
+    mountHingmedTools();
+}
+
+function parkHingmedTools(container) {
+    const tools = document.getElementById('hingmed-tools');
+    if (tools && container.contains(tools)) container.after(tools);
+}
+
+function mountHingmedTools() {
+    const tools = document.getElementById('hingmed-tools');
+    const slot = document.getElementById('hingmed-tools-slot');
+    if (tools && slot && tools.parentElement !== slot) slot.append(tools);
+}
+
+async function saveSessionToDevice() {
+    await saveHingmedSessionInfo({
+        username: document.getElementById('session-patient-name')?.value ?? '',
+        userId: document.getElementById('session-user-id')?.value ?? ''
+    });
+    syncSessionInputs();
+}
+
+async function loadSessionFromDevice() {
+    await loadHingmedSessionInfo();
+    syncSessionInputs();
+}
+
+function syncSessionInputs() {
+    const patientName = document.getElementById('session-patient-name');
+    const sessionId = document.getElementById('session-user-id');
+    if (patientName) patientName.value = state.deviceInfo.username ?? '';
+    if (sessionId) sessionId.value = state.deviceInfo.userId ?? '';
+}
+
+function toggleSessionDeviceHelp(event) {
+    const help = document.getElementById('session-device-menu-help');
+    if (!help) return;
+    help.hidden = !help.hidden;
+    event.currentTarget.setAttribute('aria-expanded', String(!help.hidden));
 }
 
 function clearLocalData() {

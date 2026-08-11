@@ -281,7 +281,11 @@
 .analytics-clinical-details {
     display: grid;
     gap: 0.85rem;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+        "period period"
+        "extremes correlations"
+        "hourly hourly";
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
     margin-top: 1rem;
 }
 
@@ -325,7 +329,103 @@
 }
 
 .analytics-details-disclosure {
-    grid-column: 1 / -1;
+    grid-area: hourly;
+}
+
+.analytics-detail-block-wide {
+    grid-area: period;
+}
+
+.analytics-extremes {
+    grid-area: extremes;
+}
+
+.analytics-correlations {
+    grid-area: correlations;
+}
+
+.analytics-correlations .analytics-data-table {
+    min-width: 0;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.analytics-correlations .analytics-data-table th:first-child {
+    width: 52%;
+}
+
+.analytics-correlations .analytics-data-table th:not(:first-child) {
+    width: 16%;
+}
+
+.analytics-period-cards {
+    display: grid;
+    gap: 0.7rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 0 0.75rem 0.75rem;
+}
+
+.analytics-period-card {
+    background: #fff;
+    border: 1px solid #dbe4f0;
+    border-radius: 10px;
+    display: grid;
+    gap: 0.65rem;
+    min-width: 0;
+    padding: 0.75rem;
+}
+
+.analytics-period-card > header {
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+    padding-bottom: 0.55rem;
+}
+
+.analytics-period-card > header strong {
+    font-size: 0.78rem;
+}
+
+.analytics-period-card > header span {
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    white-space: nowrap;
+}
+
+.analytics-load-group > small {
+    color: var(--text-muted);
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+}
+
+.analytics-load-group > div {
+    display: grid;
+    gap: 0.45rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.analytics-load-group span {
+    align-items: center;
+    background: #f8fafc;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    min-width: 0;
+    padding: 0.45rem 0.5rem;
+}
+
+.analytics-load-group b {
+    color: #64748b;
+    font-size: 0.62rem;
+}
+
+.analytics-load-group strong {
+    font-size: 0.78rem;
 }
 
 .analytics-details-disclosure > summary {
@@ -356,6 +456,24 @@
     min-width: 420px;
 }
 
+.analytics-period-load-table {
+    min-width: 0;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.analytics-period-load-table thead th {
+    overflow-wrap: normal;
+    text-align: center;
+    vertical-align: middle;
+    word-break: normal;
+}
+
+.analytics-period-load-table thead th:first-child,
+.analytics-period-load-table tbody th {
+    text-align: left;
+}
+
 .analytics-extremes-table td strong,
 .analytics-extremes-table td small {
     display: block;
@@ -380,6 +498,15 @@
 
 @media (max-width: 767.98px) {
     .analytics-clinical-details {
+        grid-template-areas:
+            "period"
+            "extremes"
+            "correlations"
+            "hourly";
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-period-cards {
         grid-template-columns: 1fr;
     }
 

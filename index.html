@@ -25,13 +25,13 @@
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="./styles/base.css" rel="stylesheet">
-    <link href="./styles/analytics.css" rel="stylesheet">
-    <link href="./styles/components.css" rel="stylesheet">
-    <link href="./styles/layout.css" rel="stylesheet">
-    <link href="./styles/settings.css" rel="stylesheet">
-    <link href="./styles/policy-and-research.css" rel="stylesheet">
-    <link href="./styles/mobile.css" rel="stylesheet">
+    <link href="./styles/base.css?v=20260811-2" rel="stylesheet">
+    <link href="./styles/analytics.css?v=20260811-2" rel="stylesheet">
+    <link href="./styles/components.css?v=20260811-2" rel="stylesheet">
+    <link href="./styles/layout.css?v=20260811-2" rel="stylesheet">
+    <link href="./styles/settings.css?v=20260811-2" rel="stylesheet">
+    <link href="./styles/policy-and-research.css?v=20260811-2" rel="stylesheet">
+    <link href="./styles/mobile.css?v=20260811-2" rel="stylesheet">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
@@ -355,19 +355,20 @@
                                         <h6 class="mb-3"><i class="fas fa-chart-bar me-2"></i>ESC 2024 reading distribution</h6>
 
 
-                                        <div class="row g-4 align-items-stretch mb-4">
-                                            <div class="col-lg-4">
-                                                <div class="chart-container chart-container-donut h-100" style="min-height: 260px;">
+                                        <div class="esc-distribution-overview mb-4">
+                                            <div class="esc-distribution-chart-panel">
+                                                <div class="chart-container chart-container-donut">
                                                     <canvas id="esc-distribution-chart"></canvas>
                                                 </div>
+                                                <div id="esc-distribution-legend" class="esc-distribution-legend" aria-label="ESC 2024 reading distribution"></div>
                                             </div>
-                                            <div class="col-lg-4">
+                                            <div>
                                                 <div class="classification-summary">
                                                     <h6 class="mb-3"><i class="fas fa-sun me-2 text-warning"></i>Day readings (06:00–22:00)</h6>
                                                     <div id="day-classification-summary"></div>
                                                 </div>
                                             </div>
-                                            <div class="col-lg-4">
+                                            <div>
                                                 <div class="classification-summary">
                                                     <h6 class="mb-3"><i class="fas fa-moon me-2 text-primary"></i>Night readings (22:00–06:00)</h6>
                                                     <div id="night-classification-summary"></div>
@@ -648,19 +649,23 @@
             <!-- Settings Tab -->
             <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
                 <div id="application-settings"></div>
+                <div id="hingmed-tools" class="hingmed-tools-stack" data-connector-capability="deviceManagement">
                 <div class="row mb-4" data-connector-capability="deviceManagement">
                     <div class="col-12">
                         <div class="card">
-                            <div class="card-header">
+                            <button type="button" class="card-header settings-collapse-toggle" data-bs-toggle="collapse" data-bs-target="#command-terminal-collapse" aria-expanded="false" aria-controls="command-terminal-collapse">
                                 <i class="fas fa-terminal text-success me-2"></i> Command terminal
-                            </div>
-                            <div class="card-body">
-                                <div>
-                                    <input type="text" id="console-input" class="console-input"
-                                           placeholder="Enter a command without CRC (for example: 5A 07 54 00 00) — CRC is added automatically"
-                                           disabled>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div id="command-terminal-collapse" class="collapse">
+                                <div class="card-body">
+                                    <div>
+                                        <input type="text" id="console-input" class="console-input"
+                                               placeholder="Enter a command without CRC (for example: 5A 07 54 00 00) — CRC is added automatically"
+                                               disabled>
+                                    </div>
+                                    <div id="terminal"></div>
                                 </div>
-                                <div id="terminal"></div>
                             </div>
                         </div>
                     </div>
@@ -675,8 +680,8 @@
                             </button>
                             <div id="device-settings-collapse" class="collapse">
                                 <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
+                                    <div class="row g-3">
+                                        <div class="col-12 device-schedule-column">
                                             <h6><i class="fas fa-clock me-2"></i>Measurement schedule</h6>
 <div class="table-responsive schedule-table">
     <table class="table table-sm">
@@ -1140,7 +1145,7 @@
 </div>
 </div>
 
-<div class="col-md-6 device-options-panel">
+<div class="col-12 device-options-panel">
 <div class="row mb-3">
     <div class="col-6">
         <label class="form-label" for="max-cuff-pressure">Maximum cuff pressure, mmHg</label>
@@ -1345,73 +1350,6 @@
 </div>
                     </div>
                 </div>
-
-                <div class="row mb-4" data-connector-capability="deviceManagement">
-                    <div class="col-12">
-                        <div class="card">
-                            <button type="button" class="card-header settings-collapse-toggle" data-bs-toggle="collapse" data-bs-target="#user-settings-collapse" aria-expanded="false" aria-controls="user-settings-collapse">
-                                <i class="fas fa-user-cog text-primary me-2"></i> Session settings
-                                <i class="fas fa-chevron-down"></i>
-                            </button>
-                            <div id="user-settings-collapse" class="collapse">
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <h6><i class="fas fa-user me-2"></i>Session information</h6>
-                                            <div class="mb-3">
-                                                <label for="patient-name-input" class="form-label">Patient name</label>
-                                                <input type="text" class="form-control" id="patient-name-input" maxlength="128" autocomplete="name" placeholder="Enter the patient name">
-                                                <small class="text-muted">Read from or saved to Hingmed when connected; also stored in this browser and included in JSON/PDF exports</small>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="user-id-input" class="form-label">Session / patient ID</label>
-                                                <input type="number" class="form-control" id="user-id-input" value="1" min="0" max="2147483647" step="1" inputmode="numeric">
-                                                <small class="text-muted">Numeric session or patient ID (0–2147483647)</small>
-                                            </div>
-                                            <div class="settings-actions">
-                                                <button id="btn-save-patient-name" class="btn btn-primary" type="button">
-                                                    <i class="fas fa-user-check"></i>
-                                                    Save patient name locally
-                                                </button>
-                                                <button id="btn-set-user-info" class="btn btn-primary" disabled>
-                                                    <i class="fas fa-save"></i>
-                                                    Save to device
-                                                </button>
-                                                <button id="btn-get-user-info" class="btn btn-secondary" disabled>
-                                                    <i class="fas fa-download"></i>
-                                                    Read from device
-                                                </button>
-                                                <button id="btn-enter-menu" class="btn btn-outline-secondary" type="button"
-                                                        aria-expanded="false" aria-controls="hingmed-menu-help">
-                                                    <i class="fas fa-circle-info"></i>
-                                                    Menu mode instructions
-                                                </button>
-                                            </div>
-                                            <div id="hingmed-menu-help" class="alert alert-warning d-none mt-3 mb-0" role="note">
-                                                <i class="fas fa-triangle-exclamation me-1"></i>
-                                                Enter the device menu manually, then retry saving or reading the session ID. The entry method depends on the Hingmed model and firmware version.
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle"></i> <strong>Session identification</strong>
-                                                <p class="mb-2 mt-2">WBP-02A exposes the patient name and numeric session ID through separate USB commands.</p>
-                                                <ul class="mb-0">
-                                                    <li>The patient name is UTF-8 text with a 32-byte device limit</li>
-                                                    <li>The session ID is a 32-bit little-endian integer</li>
-                                                    <li>BPMS reads both values from the device and includes them in exports</li>
-                                                </ul>
-                                                <hr class="my-2">
-                                                <small class="text-muted">
-                                                    Verified commands: <code>0x41/0x55</code> write/read the patient name; <code>0x42/0x56</code> write/read the numeric ID.
-                                                </small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
             <!-- End Settings Tab -->

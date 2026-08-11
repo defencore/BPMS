@@ -63,9 +63,9 @@ function renderMeasurementEditor() {
                 <form id="measurement-editor-form">
                     <div class="manual-entry-grid">
                         ${inputField({ id: 'measurement-datetime', type: 'datetime-local', labelKey: 'settings.manual.datetime', className: 'manual-datetime-field' })}
-                        ${inputField({ id: 'measurement-systolic', type: 'number', labelKey: 'settings.manual.systolic', min: 20, max: 300, prefix: 'SYS', className: 'manual-vital-field', enterKeyHint: 'next' })}
-                        ${inputField({ id: 'measurement-diastolic', type: 'number', labelKey: 'settings.manual.diastolic', min: 20, max: 200, prefix: 'DIA', className: 'manual-vital-field', enterKeyHint: 'next' })}
-                        ${inputField({ id: 'measurement-pulse', type: 'number', labelKey: 'settings.manual.pulse', min: 20, max: 250, prefix: 'BPM', className: 'manual-vital-field', enterKeyHint: 'done' })}
+                        ${inputField({ id: 'measurement-systolic', type: 'number', labelKey: 'settings.manual.systolic', min: 20, max: 300, prefix: 'SYS', placeholder: '120', className: 'manual-vital-field', enterKeyHint: 'next' })}
+                        ${inputField({ id: 'measurement-diastolic', type: 'number', labelKey: 'settings.manual.diastolic', min: 20, max: 200, prefix: 'DIA', placeholder: '80', className: 'manual-vital-field', enterKeyHint: 'next' })}
+                        ${inputField({ id: 'measurement-pulse', type: 'number', labelKey: 'settings.manual.pulse', min: 20, max: 250, prefix: 'BPM', placeholder: '60', className: 'manual-vital-field', enterKeyHint: 'done' })}
                         <div class="manual-position-field">
                             <label for="measurement-position" class="form-label">${t('settings.manual.position')}</label>
                             <select id="measurement-position" class="form-select" required>
@@ -109,9 +109,28 @@ function bindEditor(container) {
     const form = container.querySelector('#measurement-editor-form');
     form?.addEventListener('submit', submitMeasurement);
     form?.querySelectorAll('input, select').forEach(control => control.addEventListener('input', updatePreview));
+    bindVitalKeyboard(form);
     container.querySelector('.manual-optional-toggle')?.addEventListener('click', toggleOptionalDetails);
     bindMeasurementContext(container, contextDrafts, renderMeasurementEditor);
     container.querySelector('#btn-cancel-measurement-edit')?.addEventListener('click', cancelEditing);
+}
+
+function bindVitalKeyboard(form) {
+    const vitalInputs = [
+        form?.querySelector('#measurement-systolic'),
+        form?.querySelector('#measurement-diastolic'),
+        form?.querySelector('#measurement-pulse')
+    ].filter(Boolean);
+    vitalInputs.forEach((input, index) => {
+        input.addEventListener('focus', () => input.select());
+        input.addEventListener('keydown', event => {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            const next = vitalInputs[index + 1];
+            if (next) next.focus();
+            else input.blur();
+        });
+    });
 }
 
 function submitMeasurement(event) {
@@ -233,7 +252,17 @@ function setDefaultDateTime() {
     input.value = now.toISOString().slice(0, 16);
 }
 
-function inputField({ id, type, labelKey, min = '', max = '', prefix = '', className = '', enterKeyHint = '' }) {
+function inputField({
+    id,
+    type,
+    labelKey,
+    min = '',
+    max = '',
+    prefix = '',
+    placeholder = '',
+    className = '',
+    enterKeyHint = ''
+}) {
     const numeric = type === 'number';
-    return `<div class="${className}"><label for="${id}" class="form-label">${t(labelKey)}</label><div class="input-group">${prefix ? `<span class="input-group-text">${prefix}</span>` : ''}<input id="${id}" class="form-control" type="${type}" ${numeric ? 'inputmode="numeric" step="1" autocomplete="off"' : ''} ${enterKeyHint ? `enterkeyhint="${enterKeyHint}"` : ''} ${min !== '' ? `min="${min}"` : ''} ${max !== '' ? `max="${max}"` : ''} required></div></div>`;
+    return `<div class="${className}"><label for="${id}" class="form-label">${t(labelKey)}</label><div class="input-group">${prefix ? `<span class="input-group-text">${prefix}</span>` : ''}<input id="${id}" class="form-control" type="${type}" ${numeric ? 'inputmode="numeric" step="1" autocomplete="off"' : ''} ${enterKeyHint ? `enterkeyhint="${enterKeyHint}"` : ''} ${placeholder ? `placeholder="${placeholder}"` : ''} ${min !== '' ? `min="${min}"` : ''} ${max !== '' ? `max="${max}"` : ''} required></div></div>`;
 }

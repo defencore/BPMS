@@ -25,6 +25,7 @@ export function initConnectorController(onDataChanged) {
     document.getElementById('btn-publish-data')?.addEventListener('click', publishActive);
     window.addEventListener('bpms:languagechange', renderConnectorState);
     onConnectorOperationChange(renderConnectorState);
+    window.addEventListener('bpms:settingsrendered', renderConnectorState);
     renderConnectorState();
 }
 
@@ -53,7 +54,7 @@ export function listConnectors() {
     return connectorRegistry;
 }
 
-async function connectActive() {
+export async function connectActive() {
     if (isConnectorOperationBusy()) return showBusyMessage();
     const connector = getActiveConnector();
     if (!connector.isSupported()) {
@@ -72,7 +73,7 @@ async function connectActive() {
     });
 }
 
-async function disconnectActive() {
+export async function disconnectActive() {
     if (isConnectorOperationBusy()) return showBusyMessage();
     const connector = getActiveConnector();
     await runConnectorOperation('disconnect', async () => {
@@ -123,6 +124,8 @@ function renderConnectorState() {
     const connector = getActiveConnector();
     const connectButton = document.getElementById('btn-connect');
     const disconnectButton = document.getElementById('btn-disconnect');
+    const settingsConnectButton = document.getElementById('btn-settings-hingmed-connect');
+    const settingsDisconnectButton = document.getElementById('btn-settings-hingmed-disconnect');
     const fetchButton = document.getElementById('btn-fetch-data');
     const publishButton = document.getElementById('btn-publish-data');
     const publishLabel = document.getElementById('publish-data-label');
@@ -137,6 +140,8 @@ function renderConnectorState() {
 
     if (connectButton) connectButton.disabled = isBusy || connected || !connector.isSupported();
     if (disconnectButton) disconnectButton.disabled = isBusy || !connected;
+    if (settingsConnectButton) settingsConnectButton.disabled = isBusy || connected || !connector.isSupported();
+    if (settingsDisconnectButton) settingsDisconnectButton.disabled = isBusy || !connected;
     if (fetchButton) fetchButton.disabled = isBusy || !connected || !connector.capabilities.fetch;
     if (publishButton) {
         publishButton.disabled = isBusy || !connected || !connector.capabilities.publish;

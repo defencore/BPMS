@@ -20,23 +20,24 @@ export function renderAnalyticsClinicalDetails(analysis) {
 }
 
 function renderPeriodLoads(analysis) {
-    const rows = PERIODS.map(period => {
+    const cards = PERIODS.map(period => {
         const exposure = analysis.exposures[period];
         const summary = analysis.summaries[period];
-        return `<tr>
-            <th scope="row">${t(`analytics.period.${period}`)}</th>
-            <td data-label="${t('analytics.readings')}">${summary?.count ?? 0}</td>
-            <td data-label="${t('analytics.detail.sys-load')}">${percent(exposure.systolicReadingLoadPercent)}</td>
-            <td data-label="${t('analytics.detail.dia-load')}">${percent(exposure.diastolicReadingLoadPercent)}</td>
-            <td data-label="${t('analytics.detail.sys-time')}">${percent(exposure.systolicTimeAbovePercent)}</td>
-            <td data-label="${t('analytics.detail.dia-time')}">${percent(exposure.diastolicTimeAbovePercent)}</td>
-        </tr>`;
+        return `<article class="analytics-period-card">
+            <header><strong>${t(`analytics.period.${period}`)}</strong><span>${summary?.count ?? 0} · ${t('analytics.readings')}</span></header>
+            ${loadGroup('analytics.detail.reading-load', exposure.systolicReadingLoadPercent, exposure.diastolicReadingLoadPercent)}
+            ${loadGroup('analytics.detail.time-above', exposure.systolicTimeAbovePercent, exposure.diastolicTimeAbovePercent)}
+        </article>`;
     }).join('');
     return detailBlock('fa-gauge-high', 'analytics.detail.period-load', 'analytics.detail.period-load-help', `
-        <div class="table-responsive"><table class="table table-sm analytics-data-table analytics-period-load-table">
-            <thead><tr><th>${t('analytics.period')}</th><th>${t('analytics.readings')}</th><th>${t('analytics.detail.sys-load')}</th><th>${t('analytics.detail.dia-load')}</th><th>${t('analytics.detail.sys-time')}</th><th>${t('analytics.detail.dia-time')}</th></tr></thead>
-            <tbody>${rows}</tbody>
-        </table></div>`);
+        <div class="analytics-period-cards">${cards}</div>`, 'analytics-detail-block-wide analytics-period-load');
+}
+
+function loadGroup(labelKey, systolic, diastolic) {
+    return `<div class="analytics-load-group">
+        <small>${t(labelKey)}</small>
+        <div><span><b>SYS</b><strong>${percent(systolic)}</strong></span><span><b>DIA</b><strong>${percent(diastolic)}</strong></span></div>
+    </div>`;
 }
 
 function renderExtremes(extremes) {
@@ -49,7 +50,7 @@ function renderExtremes(extremes) {
         <div class="table-responsive"><table class="table table-sm analytics-data-table analytics-extremes-table">
             <thead><tr><th>${t('analytics.detail.metric')}</th><th>${t('analytics.detail.minimum')}</th><th>${t('analytics.detail.maximum')}</th></tr></thead>
             <tbody>${rows}</tbody>
-        </table></div>`);
+        </table></div>`, 'analytics-extremes');
 }
 
 function renderHourlyProfile(profile) {
@@ -63,7 +64,7 @@ function renderHourlyProfile(profile) {
         <td data-label="${t('analytics.detail.pulse')}">${value(hour.pulse?.mean, 0)}</td>
         <td data-label="RPP/100">${value(hour.scaledRpp?.mean)}</td>
     </tr>`).join('');
-    return `<details class="analytics-details-disclosure">
+    return `<details class="analytics-details-disclosure analytics-hourly-profile">
         <summary><span><i class="fas fa-clock"></i>${t('analytics.detail.hourly')}</span><small>${t('analytics.detail.hourly-help')}</small></summary>
         <div class="table-responsive"><table class="table table-sm analytics-data-table">
             <thead><tr><th>${t('analytics.detail.hour')}</th><th>${t('analytics.readings')}</th><th>${t('analytics.detail.bp')}</th><th>MAP</th><th>PP</th><th>${t('analytics.detail.pulse')}</th><th>RPP/100</th></tr></thead>
@@ -84,11 +85,11 @@ function renderCorrelations(correlations) {
             <thead><tr><th>${t('analytics.detail.relationship')}</th><th>n</th><th>r</th><th>R²</th></tr></thead>
             <tbody>${rows}</tbody>
         </table></div>
-        <p class="analytics-correlation-warning"><i class="fas fa-flask"></i>${t('analytics.detail.correlation-warning')}</p>`);
+        <p class="analytics-correlation-warning"><i class="fas fa-flask"></i>${t('analytics.detail.correlation-warning')}</p>`, 'analytics-correlations');
 }
 
-function detailBlock(icon, titleKey, helpKey, content) {
-    return `<section class="analytics-detail-block"><header><span><i class="fas ${icon}"></i>${t(titleKey)}</span><small>${t(helpKey)}</small></header>${content}</section>`;
+function detailBlock(icon, titleKey, helpKey, content, className = '') {
+    return `<section class="analytics-detail-block ${className}"><header><span><i class="fas ${icon}"></i>${t(titleKey)}</span><small>${t(helpKey)}</small></header>${content}</section>`;
 }
 
 function extremeValue(item, unitKey) {

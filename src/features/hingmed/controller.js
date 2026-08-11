@@ -11,7 +11,7 @@ import { addToTerminal } from '../../ui/terminal.js';
 import { setHingmedControlsEnabled } from '../device-info-view.js';
 import { initCommandTerminal } from './terminal-controller.js';
 import { initDeviceSettings, readDeviceConfiguration } from './device-settings.js';
-import { initUserSettings } from './user-settings.js';
+import { loadUserSettings, saveUserSettings } from './user-settings.js';
 import { initWifiSettings } from './wifi-settings.js';
 
 const client = createHingmedClient({ logger: addToTerminal });
@@ -23,13 +23,21 @@ export function initHingmedControls(onDataChanged) {
     initCommandTerminal(client);
     initDeviceSettings(client, updateDeviceInfo);
     initWifiSettings(client, updateDeviceInfo);
-    initUserSettings(client, updateDeviceInfo);
     document.getElementById('btn-clear-device-memory')?.addEventListener('click', clearHingmedDeviceMemory);
     window.addEventListener('bpms:languagechange', renderClockSyncStatus);
+    window.addEventListener('bpms:settingsrendered', syncRenderedControls);
     onConnectorOperationChange(() => setHingmedControlsEnabled(client.isConnected() && !isConnectorOperationBusy()));
     setHingmedControlsEnabled(false);
     renderClockSyncStatus();
     addToTerminal(t('hingmed.ready'), 'system');
+}
+
+export function saveHingmedSessionInfo(values) {
+    return saveUserSettings(client, updateDeviceInfo, values);
+}
+
+export function loadHingmedSessionInfo() {
+    return loadUserSettings(client, updateDeviceInfo);
 }
 
 export function isHingmedSupported() {
@@ -124,11 +132,11 @@ async function hydrateDeviceInfo() {
     const username = await optional(() => client.getUserName({ timeout: 1200, attempts: 1 }));
     const userId = await optional(() => client.getUserId({ timeout: 1200, attempts: 1 }));
     if (username !== null) {
-        const input = document.getElementById('patient-name-input');
+        const input = document.getElementById('session-patient-name');
         if (input) input.value = username;
     }
     if (userId !== null) {
-        const input = document.getElementById('user-id-input');
+        const input = document.getElementById('session-user-id');
         if (input) input.value = userId;
     }
     const changes = {
@@ -138,6 +146,11 @@ async function hydrateDeviceInfo() {
     if (username !== null) Object.assign(changes, { username, usernameSource: 'device' });
     if (userId !== null) changes.userId = userId;
     persistDeviceInfo(changes);
+}
+
+function syncRenderedControls() {
+    setHingmedControlsEnabled(client.isConnected() && !isConnectorOperationBusy());
+    renderClockSyncStatus();
 }
 
 function renderClockSyncStatus() {

@@ -1,7 +1,12 @@
 import { getSettings } from '../../core/settings-store.js';
 import { state } from '../../core/state.js';
 import { t } from '../../i18n/i18n.js';
-import { calculateCombinedChartBounds, formatCombinedXAxisLabel, selectCombinedChartMeasurements } from './combined-data.js';
+import {
+    calculateCombinedChartBounds,
+    formatCombinedXAxisLabel,
+    selectCombinedChartMeasurements
+} from './combined-data.js';
+import { calculateZoomMinRange } from './zoom-limits.js';
 import { applyClinicalThresholds } from './thresholds.js';
 import {
     compactDatasetStyle,
@@ -145,7 +150,7 @@ export function initCombinedChart() {
                     zoom: {
                         wheel: {
                             enabled: true,
-                            speed: 0.02
+                            speed: 0.005
                         },
                         pinch: {
                             enabled: true
@@ -156,7 +161,7 @@ export function initCombinedChart() {
                         mode: 'x',
                     },
                     limits: {
-                        x: {min: 'original', max: 'original'},
+                        x: { min: 'original', max: 'original', minRange: 2 },
                         y: {min: 'original', max: 'original'}
                     }
                 },
@@ -252,6 +257,12 @@ export function updateCombinedChart(viewMode = 'last24') {
     applyClinicalThresholds(state.charts.combined);
 
     const chartData = selectCombinedChartMeasurements(state.measurements, viewMode);
+    const canNavigate = chartData.length > 2;
+    state.charts.combined.resetZoom?.('none');
+    state.charts.combined.options.plugins.zoom.pan.enabled = canNavigate;
+    state.charts.combined.options.plugins.zoom.zoom.wheel.enabled = canNavigate;
+    state.charts.combined.options.plugins.zoom.zoom.pinch.enabled = canNavigate;
+    state.charts.combined.options.plugins.zoom.limits.x.minRange = calculateZoomMinRange(chartData.length) || 1;
     const labels = chartData.map(m => m.datetime);
     const systolicData = chartData.map(m => m.systolic);
     const diastolicData = chartData.map(m => m.diastolic);

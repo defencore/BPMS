@@ -182,7 +182,6 @@ function presetSelect(field, labelKey, selected) {
 function presetInput(field, labelKey, value, type, attributes = '', placeholder = '') {
     return `<div class="settings-field"><label class="form-label">${t(labelKey)}</label><input class="form-control" type="${type}" value="${escapeHtml(String(value ?? ''))}" ${attributes} ${placeholder ? `placeholder="${escapeHtml(placeholder)}"` : ''} data-preset-field="${field}"></div>`;
 }
-
 function connectorPanel(connectors, deviceInfo) {
     const options = connectors.map(connector => `<option value="${connector.id}">${t(connector.labelKey)}</option>`).join('');
     return `
@@ -194,14 +193,20 @@ function connectorPanel(connectors, deviceInfo) {
                 <div class="settings-group-heading"><span class="settings-group-icon"><i class="fas fa-arrow-pointer"></i></span><div><h6>${t('settings.connectors.active')}</h6></div></div>
                 <div class="settings-field">
                     <label for="connector-select" class="visually-hidden">${t('settings.connectors.active')}</label>
-                    <select id="connector-select" class="form-select form-select-lg">${options}</select>
+                    <select id="connector-select" class="form-select">${options}</select>
                     <div id="connector-description" class="form-text"></div>
                 </div>
             </section>
             <section class="settings-connector-details">
                 <div class="connector-config" data-connector-panel="hingmed">
-                    <h6><i class="fas fa-usb me-2"></i>${t('connector.hingmed.label')}</h6>
-                    <p class="text-muted mb-0">${t('settings.connector.hingmed-help')}</p>
+                    <h6><i class="fas fa-plug me-2"></i>${t('connector.hingmed.label')}</h6>
+                    <p class="text-muted">${t('settings.connector.hingmed-help')}</p>
+                    <div class="connector-quick-actions">
+                        <button id="btn-settings-open-monitoring" class="btn btn-outline-primary" type="button"><i class="fas fa-arrow-up-right-from-square me-2"></i>${t('Data overview')}</button>
+                        <button id="btn-settings-hingmed-connect" class="btn btn-success" type="button"><i class="fas fa-link me-2"></i>${t('Connect')}</button>
+                        <button id="btn-settings-hingmed-disconnect" class="btn btn-outline-danger" type="button" disabled><i class="fas fa-unlink me-2"></i>${t('Disconnect')}</button>
+                    </div>
+                    <div id="hingmed-tools-slot" class="hingmed-tools-slot"></div>
                 </div>
                 <div class="connector-config" data-connector-panel="manual" hidden>
                     <h6><i class="fas fa-keyboard me-2"></i>${t('connector.manual.label')}</h6>
@@ -213,8 +218,6 @@ function connectorPanel(connectors, deviceInfo) {
                                 ${manualDeviceInput('manual-device-id', 'id', 'settings.manual.device-id', deviceInfo.id, true)}
                                 ${manualDeviceInput('manual-device-serial', 'serialNumber', 'settings.manual.serial-number', deviceInfo.serialNumber, true)}
                                 ${manualDeviceInput('manual-device-mac', 'macAddress', 'settings.manual.mac-address', deviceInfo.macAddress, true)}
-                                ${manualDeviceInput('manual-device-user', 'username', 'settings.session.patient-name', deviceInfo.username)}
-                                ${manualDeviceInput('manual-device-user-id', 'userId', 'settings.manual.user-id', deviceInfo.userId)}
                             </div>
                         </div>
                         <div class="settings-form-actions manual-device-actions">

@@ -39,7 +39,7 @@ test('IPv4 parser accepts canonical addresses and rejects malformed octets', () 
 
 test('device settings create one declarative command sequence', () => {
     const values = new Map([
-        ['user-id-input', 0x4567], ['max-cuff-pressure', 280], ['keypad-setting', 1], ['display-setting', 1], ['awake-alarm', 1], ['asleep-alarm', 0],
+        ['session-user-id', 0x4567], ['max-cuff-pressure', 280], ['keypad-setting', 1], ['display-setting', 1], ['awake-alarm', 1], ['asleep-alarm', 0],
         ['awake-begin-hour', 6], ['awake-begin-min', 30], ['awake-interval', 30],
         ['awake-end-hour', 22], ['awake-end-min', 0], ['asleep-interval', 60],
         ['highest-sys', 170], ['highest-dia', 120], ['lowest-sys', 90], ['lowest-dia', 60]
@@ -69,7 +69,7 @@ test('device settings create one declarative command sequence', () => {
 
 test('device settings reject timings outside the verified WBP-02A schedule list', () => {
     const values = new Map([
-        ['user-id-input', 1], ['keypad-setting', 1], ['display-setting', 1], ['awake-alarm', 0], ['asleep-alarm', 0],
+        ['session-user-id', 1], ['keypad-setting', 1], ['display-setting', 1], ['awake-alarm', 0], ['asleep-alarm', 0],
         ['awake-interval', 25], ['asleep-interval', 60]
     ]);
     const read = {

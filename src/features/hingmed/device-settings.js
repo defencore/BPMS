@@ -40,7 +40,7 @@ export function initDeviceSettings(client, onDeviceInfoChanged = () => {}) {
 export function buildDeviceConfiguration(read) {
     const specials = SPECIAL_PERIODS.filter(period => read.checked(period.enabled));
     const steps = [
-        step(0x42, encodeSessionId(read.integer('user-id-input', 0, 0x7FFFFFFF))),
+        step(0x42, encodeSessionId(read.integer('session-user-id', 0, 0x7FFFFFFF))),
         step(0x43, uint16(280)),
         step(0x44, [read.checked('start-in-five-minutes') ? 1 : 0]),
         step(0x45, [read.integer('keypad-setting', 0, 1)]),

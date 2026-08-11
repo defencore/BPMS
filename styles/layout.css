@@ -198,17 +198,77 @@ body {
 }
 
 .schedule-table {
-    overscroll-behavior-inline: contain;
-    scrollbar-gutter: stable;
+    overflow: visible;
+    width: 100%;
 }
 
 .schedule-table .table {
-    min-width: 41rem;
+    min-width: 0;
+    table-layout: fixed;
+    width: 100%;
 }
 
 .schedule-table th,
 .schedule-table td {
+    overflow-wrap: normal;
+    padding: 0.6rem 0.45rem;
     vertical-align: middle;
+}
+
+.schedule-table th {
+    font-size: 0.67rem;
+    letter-spacing: 0.025em;
+    white-space: nowrap;
+}
+
+.schedule-table th:first-child,
+.schedule-table td:first-child {
+    width: 16%;
+}
+
+.schedule-table th:nth-child(2),
+.schedule-table td:nth-child(2),
+.schedule-table th:nth-child(3),
+.schedule-table td:nth-child(3) {
+    width: 27%;
+}
+
+.schedule-table th:nth-child(4),
+.schedule-table td:nth-child(4) {
+    width: 18%;
+}
+
+.schedule-table th:nth-child(5),
+.schedule-table td:nth-child(5) {
+    width: 12%;
+}
+
+.schedule-table td > .d-flex {
+    display: grid !important;
+    gap: 0.25rem;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    width: 100%;
+}
+
+.schedule-table .form-select {
+    font-size: 0.76rem;
+    min-width: 0;
+    padding-left: 0.45rem;
+    padding-right: 1.45rem;
+}
+
+.schedule-table .form-select[style] {
+    width: 100% !important;
+}
+
+.device-schedule-column,
+.device-options-panel {
+    min-width: 0;
+}
+
+.device-options-panel {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 1rem;
 }
 
 .device-options-panel > .row > [class*='col-'] {

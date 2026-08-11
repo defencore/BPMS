@@ -1,7 +1,8 @@
 import { classifyBloodPressure } from '../../core/blood-pressure.js';
 import { state } from '../../core/state.js';
 import { t } from '../../i18n/i18n.js';
-import { isCompactChartViewport, responsiveLegend, responsiveTooltip } from './responsive-options.js';
+import { escapeHtml } from '../../ui/html.js';
+import { isCompactChartViewport, responsiveTooltip } from './responsive-options.js';
 
 export function updateESCDistributionChart() {
     const canvas = document.getElementById('esc-distribution-chart');
@@ -34,7 +35,7 @@ export function updateESCDistributionChart() {
                 animation: { duration: compact ? 0 : 400 },
                 cutout: compact ? '64%' : '50%',
                 plugins: {
-                    legend: responsiveLegend('right'),
+                    legend: { display: false },
                     tooltip: responsiveTooltip({
                             label: function(context) {
                                 const label = context.label || '';
@@ -50,6 +51,7 @@ export function updateESCDistributionChart() {
     }
 
     if (state.measurements.length === 0) {
+        renderLegend([], [], []);
         if (state.charts.escDistribution.data) {
             state.charts.escDistribution.data.labels = [];
             state.charts.escDistribution.data.datasets[0].data = [];
@@ -87,5 +89,12 @@ export function updateESCDistributionChart() {
     state.charts.escDistribution.data.labels = labels;
     state.charts.escDistribution.data.datasets[0].data = data;
     state.charts.escDistribution.data.datasets[0].backgroundColor = backgroundColors;
+    renderLegend(labels, data, backgroundColors);
     state.charts.escDistribution.update();
+}
+
+function renderLegend(labels, values, colors) {
+    const legend = document.getElementById('esc-distribution-legend');
+    if (!legend) return;
+    legend.innerHTML = labels.map((label, index) => `<span><i style="--legend-color:${escapeHtml(colors[index])}"></i><b>${escapeHtml(label)}</b><small>${values[index]}</small></span>`).join('');
 }
